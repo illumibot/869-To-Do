@@ -1,289 +1,431 @@
-'use client'
+'use client';
 
-import { useEffect, useMemo, useState } from 'react'
-import { supabase } from '../lib/supabase'
-import {
-  Zap,
-  Music,
-  Utensils,
-  Calendar,
-  MapPin,
-  Flame,
-  ChevronRight,
-  Search,
-  Home,
-  PlusSquare,
-  Heart,
-  Map,
-} from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+
+const islandOptions = ['All', 'St. Kitts', 'Nevis'];
+const viewOptions = ['Home', 'Search', 'Map', 'Saved'];
+
+function normalizeIsland(value) {
+  if (!value) return 'Other';
+  const str = String(value).trim().toLowerCase();
+
+  if (str.includes('kitts') || str.includes('saint kitts') || str.includes('st kitts')) {
+    return 'St. Kitts';
+  }
+  if (str.includes('nevis')) {
+    return 'Nevis';
+  }
+  return String(value).trim();
+}
+
+function formatDate(value) {
+  if (!value) return 'Date TBA';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+
+  return date.toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+function formatPrice(value) {
+  if (value === null || value === undefined || value === '') return 'Free';
+
+  const num = Number(value);
+  if (Number.isNaN(num)) return String(value);
+
+  if (num === 0) return 'Free';
+
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(num);
+}
+
+function getListingTitle(item) {
+  return (
+    item.title ||
+    item.name ||
+    item.event_name ||
+    item.listing_title ||
+    'Untitled Event'
+  );
+}
+
+function getListingCategory(item) {
+  return (
+    item.category ||
+    item.type ||
+    item.event_type ||
+    item.tag ||
+    'General'
+  );
+}
+
+function getListingIsland(item) {
+  return normalizeIsland(item.island || item.location_island || item.region || item.area);
+}
+
+function getListingLocation(item) {
+  return (
+    item.location ||
+    item.venue ||
+    item.place ||
+    item.address ||
+    getListingIsland(item)
+  );
+}
+
+function getListingDate(item) {
+  return item.date || item.event_date || item.starts_at || item.start_date || item.created_at;
+}
+
+function getListingPrice(item) {
+  return item.price ?? item.cost ?? item.ticket_price ?? 0;
+}
+
+function getListingImage(item) {
+  return (
+    item.image_url ||
+    item.image ||
+    item.photo_url ||
+    item.cover_image ||
+    ''
+  );
+}
 
 export default function Page() {
-  const [listings, setListings] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [selectedIsland, setSelectedIsland] = useState('St. Kitts')
-  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedIsland, setSelectedIsland] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [activeView, setActiveView] = useState('Home');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [savedIds, setSavedIds] = useState([]);
 
   useEffect(() => {
-    fetchListings()
-  }, [])
+    const loadListings = async () => {
+      setLoading(true);
 
-  async function fetchListings() {
-    setLoading(true)
+      const { data, error } = await supabase
+        .from('listings')
+        .select('*')
+        .order('date', { ascending: true, nullsFirst: false });
 
-    const { data, error } = await supabase
-      .from('listings')
-      .select('*')
-      .order('is_featured', { ascending: false })
-      .order('start_time', { ascending: true })
+      if (error) {
+        console.error('Supabase load error:', error);
+        setListings([]);
+      } else {
+        setListings(data || []);
+      }
 
-    if (error) {
-      console.error('Error fetching listings:', error)
-      setListings([])
-    } else {
-      setListings(data || [])
-    }
+      setLoading(false);
+    };
 
-    setLoading(false)
-  }
+    loadListings();
+  }, []);
 
-  const islandListings = useMemo(() => {
-    return listings.filter((item) => item.island === selectedIsland)
-  }, [listings, selectedIsland])
+  const categories = useMemo(() => {
+    const set = new Set();
+
+    listings.forEach((item) => {
+      const category = getListingCategory(item);
+      if (category) set.add(category);
+    });
+
+    return ['All', ...Array.from(set)];
+  }, [listings]);
 
   const filteredListings = useMemo(() => {
-    if (selectedCategory === 'all') return islandListings
+    return listings.filter((item) => {
+      const island = getListingIsland(item);
+      const category = getListingCategory(item);
+      const title = getListingTitle(item).toLowerCase();
+      const location = getListingLocation(item).toLowerCase();
+      const query = searchQuery.trim().toLowerCase();
 
-    if (selectedCategory === 'music') {
-      return islandListings.filter(
-        (item) => (item.category || '').toLowerCase() === 'music'
-      )
-    }
+      const matchesIsland =
+        selectedIsland === 'All' || island === selectedIsland;
 
-    if (selectedCategory === 'food') {
-      return islandListings.filter((item) => {
-        const cat = (item.category || '').toLowerCase()
-        return cat === 'food' || cat === 'dining' || cat === 'specials'
-      })
-    }
+      const matchesCategory =
+        selectedCategory === 'All' || category === selectedCategory;
 
-    if (selectedCategory === 'weekend') {
-      return islandListings.filter((item) => {
-        if (!item.start_time) return false
-        const day = new Date(item.start_time).getDay()
-        return day === 5 || day === 6 || day === 0
-      })
-    }
+      const matchesSearch =
+        !query ||
+        title.includes(query) ||
+        location.includes(query) ||
+        category.toLowerCase().includes(query) ||
+        island.toLowerCase().includes(query);
 
-    return islandListings
-  }, [islandListings, selectedCategory])
+      return matchesIsland && matchesCategory && matchesSearch;
+    });
+  }, [listings, selectedIsland, selectedCategory, searchQuery]);
 
-  const trending = filteredListings[0]
-  const otherListings = filteredListings.slice(1)
+  const savedListings = useMemo(() => {
+    return filteredListings.filter((item) => savedIds.includes(item.id));
+  }, [filteredListings, savedIds]);
 
-  return (
-    <main className="p-6 space-y-8 animate-in fade-in duration-500">
-      <section>
-        <h1 className="text-3xl font-black text-869-dark leading-tight">
-          What’s going on <br />
-          <span className="text-869-blue underline decoration-869-orange/30 text-4xl italic">
-            right now?
-          </span>
-        </h1>
-      </section>
+  const featuredListings = useMemo(() => {
+    return filteredListings.slice(0, 12);
+  }, [filteredListings]);
 
-      <div className="flex bg-gray-200/50 p-1 rounded-2xl w-fit">
-        <button
-          onClick={() => setSelectedIsland('St. Kitts')}
-          className={`px-6 py-2 rounded-xl text-sm font-bold ${
-            selectedIsland === 'St. Kitts'
-              ? 'bg-white shadow-sm text-869-blue'
-              : 'text-gray-400'
-          }`}
-        >
-          St. Kitts
-        </button>
-        <button
-          onClick={() => setSelectedIsland('Nevis')}
-          className={`px-6 py-2 rounded-xl text-sm font-bold ${
-            selectedIsland === 'Nevis'
-              ? 'bg-white shadow-sm text-869-blue'
-              : 'text-gray-400'
-          }`}
-        >
-          Nevis
-        </button>
-      </div>
+  const toggleSaved = (id) => {
+    setSavedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
 
-      <div className="flex overflow-x-auto gap-4 no-scrollbar pb-2">
-        <CategoryCard
-          icon={<Zap className="text-869-orange" />}
-          label="Happening Now"
-          active={selectedCategory === 'all'}
-          onClick={() => setSelectedCategory('all')}
-        />
-        <CategoryCard
-          icon={<Music className="text-purple-500" />}
-          label="Live Music"
-          active={selectedCategory === 'music'}
-          onClick={() => setSelectedCategory('music')}
-        />
-        <CategoryCard
-          icon={<Utensils className="text-green-500" />}
-          label="Food Specials"
-          active={selectedCategory === 'food'}
-          onClick={() => setSelectedCategory('food')}
-        />
-        <CategoryCard
-          icon={<Calendar className="text-blue-500" />}
-          label="This Weekend"
-          active={selectedCategory === 'weekend'}
-          onClick={() => setSelectedCategory('weekend')}
-        />
-      </div>
+  const renderCard = (item) => {
+    const image = getListingImage(item);
+    const title = getListingTitle(item);
+    const category = getListingCategory(item);
+    const island = getListingIsland(item);
+    const location = getListingLocation(item);
+    const date = getListingDate(item);
+    const price = getListingPrice(item);
+    const isSaved = savedIds.includes(item.id);
 
-      <section>
-        <div className="flex justify-between items-end mb-4">
-          <h2 className="text-xl font-black flex items-center gap-2">
-            <Flame size={20} className="text-869-orange fill-869-orange" />
-            Trending
-          </h2>
-          <span className="text-869-blue text-xs font-bold uppercase tracking-widest">
-            {selectedIsland}
-          </span>
+    return (
+      <article
+        key={item.id}
+        className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition hover:bg-white/10"
+      >
+        <div className="relative h-44 w-full bg-white/5">
+          {image ? (
+            <img
+              src={image}
+              alt={title}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-white/40">
+              No image
+            </div>
+          )}
+
+          <button
+            onClick={() => toggleSaved(item.id)}
+            className="absolute right-3 top-3 rounded-full bg-black/50 px-3 py-1 text-sm text-white backdrop-blur"
+            aria-label={isSaved ? 'Remove from saved' : 'Save event'}
+          >
+            {isSaved ? '★ Saved' : '☆ Save'}
+          </button>
         </div>
 
-        {loading ? (
-          <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm">
-            Loading listings...
+        <div className="space-y-3 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <span className="rounded-full bg-cyan-400/15 px-3 py-1 text-xs font-medium text-cyan-300">
+              {category}
+            </span>
+            <span className="text-sm text-white/60">{island}</span>
           </div>
-        ) : trending ? (
-          <div className="relative h-72 w-full rounded-[2.5rem] overflow-hidden shadow-2xl bg-gray-200 group">
-            {trending.image_url ? (
-              <img
-                src={trending.image_url}
-                alt={trending.title}
-                className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-gray-300 via-gray-200 to-gray-300" />
-            )}
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent p-8 flex flex-col justify-end">
-              <div className="flex gap-2 mb-3">
-                {trending.is_featured && (
-                  <span className="bg-869-blue text-white text-[10px] font-black px-2 py-1 rounded">
-                    FEATURED
-                  </span>
-                )}
-                <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-black px-2 py-1 rounded uppercase">
-                  {trending.category || 'Event'}
-                </span>
-              </div>
-
-              <h3 className="text-white text-3xl font-black mb-1 leading-none">
-                {trending.title}
-              </h3>
-
-              <p className="text-gray-200 text-sm font-medium mb-1">
-                {trending.description || 'No description yet.'}
-              </p>
-
-              <p className="text-gray-300 text-sm font-medium flex items-center gap-1">
-                <MapPin size={14} />
-                {trending.venue_name || 'Venue TBA'} • {formatEventTime(trending.start_time)}
-              </p>
-            </div>
+          <div>
+            <h3 className="text-lg font-semibold text-white">{title}</h3>
+            <p className="mt-1 text-sm text-white/65">{location}</p>
           </div>
-        ) : (
-          <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm">
-            No listings found for {selectedIsland}.
+
+          <div className="flex items-center justify-between text-sm text-white/75">
+            <span>{formatDate(date)}</span>
+            <span className="font-medium text-white">{formatPrice(price)}</span>
           </div>
-        )}
+        </div>
+      </article>
+    );
+  };
+
+  const renderHome = () => (
+    <>
+      <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/20 via-sky-500/10 to-indigo-500/10 p-6 shadow-2xl shadow-cyan-900/20">
+        <div className="space-y-3">
+          <p className="text-sm uppercase tracking-[0.25em] text-cyan-300/80">
+            869 To Do
+          </p>
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            Find what’s happening in St. Kitts and Nevis
+          </h1>
+          <p className="max-w-2xl text-sm text-white/70 sm:text-base">
+            Live event listings, island filters, category filters, and a cleaner
+            mobile-friendly layout connected to Supabase.
+          </p>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div className="text-2xl font-bold text-white">{listings.length}</div>
+            <div className="text-sm text-white/60">Total listings</div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div className="text-2xl font-bold text-white">{featuredListings.length}</div>
+            <div className="text-sm text-white/60">Showing now</div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div className="text-2xl font-bold text-white">{savedIds.length}</div>
+            <div className="text-sm text-white/60">Saved events</div>
+          </div>
+        </div>
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-black">What’s On</h2>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search events, venues, islands, categories..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white placeholder:text-white/35 outline-none ring-0 transition focus:border-cyan-400/50"
+            />
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <p className="mb-2 text-sm font-medium text-white/70">Island</p>
+              <div className="flex flex-wrap gap-2">
+                {islandOptions.map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => setSelectedIsland(option)}
+                    className={`rounded-full px-4 py-2 text-sm transition ${
+                      selectedIsland === option
+                        ? 'bg-cyan-400 text-slate-950'
+                        : 'bg-white/5 text-white hover:bg-white/10'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 text-sm font-medium text-white/70">Category</p>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => setSelectedCategory(option)}
+                    className={`rounded-full px-4 py-2 text-sm transition ${
+                      selectedCategory === option
+                        ? 'bg-cyan-400 text-slate-950'
+                        : 'bg-white/5 text-white hover:bg-white/10'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
 
         {loading ? (
-          <div className="bg-white rounded-3xl p-6 border border-gray-100">
-            Loading...
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
+            Loading listings...
           </div>
-        ) : filteredListings.length === 0 ? (
-          <div className="bg-white rounded-3xl p-6 border border-gray-100">
-            Nothing found for this filter yet.
+        ) : featuredListings.length === 0 ? (
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
+            No listings match those filters yet.
           </div>
         ) : (
-          filteredListings.map((item) => (
-            <EventCard
-              key={item.id}
-              title={item.title}
-              venue={item.venue_name}
-              description={item.description}
-              time={formatEventTime(item.start_time)}
-              tag={item.category || 'Event'}
-            />
-          ))
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {featuredListings.map(renderCard)}
+          </div>
         )}
       </section>
-    </main>
-  )
-}
+    </>
+  );
 
-function CategoryCard({ icon, label, active = false, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex flex-col items-center justify-center min-w-[118px] p-4 rounded-3xl border transition active:scale-95 ${
-        active
-          ? 'bg-white border-869-blue shadow-lg shadow-blue-100'
-          : 'bg-white border-gray-100'
-      }`}
-    >
-      <div className="mb-2">{icon}</div>
-      <span className="text-[10px] font-black uppercase text-center leading-tight tracking-tighter">
-        {label}
-      </span>
-    </button>
-  )
-}
-
-function EventCard({ title, venue, description, time, tag }) {
-  return (
-    <div className="bg-white p-5 rounded-3xl flex items-center gap-4 border border-gray-100 hover:border-869-blue transition group">
-      <div className="h-16 w-16 bg-gray-100 rounded-2xl flex-shrink-0 overflow-hidden">
-        <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300"></div>
+  const renderSearch = () => (
+    <section className="space-y-4">
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <input
+          type="text"
+          placeholder="Search all listings..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white placeholder:text-white/35 outline-none focus:border-cyan-400/50"
+        />
       </div>
 
-      <div className="flex-1">
-        <span className="text-[9px] font-black px-2 py-0.5 rounded uppercase bg-blue-100 text-blue-600">
-          {tag}
-        </span>
-        <h4 className="font-black text-gray-900 text-lg leading-tight mt-1">
-          {title}
-        </h4>
-        <p className="text-gray-500 text-xs font-medium">{venue || 'Venue TBA'}</p>
-        {description && (
-          <p className="text-gray-500 text-xs mt-1 line-clamp-2">{description}</p>
-        )}
-        <div className="flex items-center gap-1 text-869-blue text-xs font-bold mt-1">
-          <Calendar size={12} /> {time}
+      {filteredListings.length === 0 ? (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
+          No results found.
         </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {filteredListings.map(renderCard)}
+        </div>
+      )}
+    </section>
+  );
+
+  const renderMap = () => (
+    <section className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+      <h2 className="text-2xl font-semibold text-white">Map view</h2>
+      <p className="mt-2 text-white/65">
+        Placeholder for the next step. Once the homepage is working, this can become
+        a real map page or a dedicated route.
+      </p>
+    </section>
+  );
+
+  const renderSaved = () => (
+    <section className="space-y-4">
+      {savedListings.length === 0 ? (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
+          You have no saved events yet.
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {savedListings.map(renderCard)}
+        </div>
+      )}
+    </section>
+  );
+
+  return (
+    <main className="min-h-screen bg-slate-950 text-white">
+      <div className="mx-auto max-w-7xl px-4 pb-28 pt-6 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm text-cyan-300/80">Live event app</p>
+            <h1 className="text-2xl font-bold tracking-tight">869 To Do</h1>
+          </div>
+
+          <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70">
+            {loading ? 'Syncing...' : `${filteredListings.length} results`}
+          </div>
+        </div>
+
+        {activeView === 'Home' && renderHome()}
+        {activeView === 'Search' && renderSearch()}
+        {activeView === 'Map' && renderMap()}
+        {activeView === 'Saved' && renderSaved()}
       </div>
 
-      <ChevronRight size={20} className="text-gray-300 group-hover:text-869-blue transition" />
-    </div>
-  )
-}
-
-function formatEventTime(dateString) {
-  if (!dateString) return 'Time TBA'
-
-  const date = new Date(dateString)
-
-  return date.toLocaleString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  })
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-slate-950/90 backdrop-blur">
+        <div className="mx-auto flex max-w-3xl items-center justify-around px-2 py-3">
+          {viewOptions.map((view) => (
+            <button
+              key={view}
+              onClick={() => setActiveView(view)}
+              className={`rounded-xl px-4 py-2 text-sm transition ${
+                activeView === view
+                  ? 'bg-cyan-400 text-slate-950'
+                  : 'text-white/65 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              {view}
+            </button>
+          ))}
+        </div>
+      </nav>
+    </main>
+  );
 }
