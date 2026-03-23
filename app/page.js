@@ -82,11 +82,13 @@ export default function Page() {
     loadListings();
   }, []);
 
-  const categories = useMemo(() => {
-    const set = new Set();
-    listings.forEach((item) => set.add(getCategory(item)));
-    return ['All', ...Array.from(set)];
-  }, [listings]);
+const categories = useMemo(() => {
+  const set = new Set(['Music', 'Tours', 'Food']); // force these
+
+  listings.forEach((item) => set.add(getCategory(item)));
+
+  return ['All', ...Array.from(set)];
+}, [listings]);
 
   const filteredListings = useMemo(() => {
     return listings.filter((item) => {
