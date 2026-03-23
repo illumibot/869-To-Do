@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
@@ -10,22 +11,28 @@ function normalizeIsland(value) {
   if (!value) return 'Other';
   const str = String(value).trim().toLowerCase();
 
-  if (str.includes('kitts') || str.includes('saint kitts') || str.includes('st kitts')) {
+  if (
+    str.includes('st. kitts') ||
+    str.includes('st kitts') ||
+    str.includes('saint kitts') ||
+    str.includes('kitts')
+  ) {
     return 'St. Kitts';
   }
+
   if (str.includes('nevis')) {
     return 'Nevis';
   }
+
   return String(value).trim();
 }
 
 function formatDate(value) {
   if (!value) return 'Date TBA';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-
-  return date.toLocaleDateString(undefined, {
+  return d.toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -37,7 +44,6 @@ function formatPrice(value) {
 
   const num = Number(value);
   if (Number.isNaN(num)) return String(value);
-
   if (num === 0) return 'Free';
 
   return new Intl.NumberFormat(undefined, {
@@ -47,56 +53,54 @@ function formatPrice(value) {
   }).format(num);
 }
 
-function getListingTitle(item) {
-  return (
-    item.title ||
-    item.name ||
-    item.event_name ||
-    item.listing_title ||
-    'Untitled Event'
-  );
+function getTitle(item) {
+  return item.title || item.name || item.event_name || 'Untitled Event';
 }
 
-function getListingCategory(item) {
-  return (
-    item.category ||
-    item.type ||
-    item.event_type ||
-    item.tag ||
-    'General'
-  );
+function getCategory(item) {
+  return item.category || item.type || item.event_type || 'General';
 }
 
-function getListingIsland(item) {
+function getIsland(item) {
   return normalizeIsland(item.island || item.location_island || item.region || item.area);
 }
 
-function getListingLocation(item) {
-  return (
-    item.location ||
-    item.venue ||
-    item.place ||
-    item.address ||
-    getListingIsland(item)
-  );
+function getLocation(item) {
+  return item.location || item.venue || item.place || item.address || getIsland(item);
 }
 
-function getListingDate(item) {
+function getDate(item) {
   return item.date || item.event_date || item.starts_at || item.start_date || item.created_at;
 }
 
-function getListingPrice(item) {
+function getPrice(item) {
   return item.price ?? item.cost ?? item.ticket_price ?? 0;
 }
 
-function getListingImage(item) {
-  return (
+function getDescription(item) {
+  return item.description || item.details || item.summary || '';
+}
+
+function getImage(item) {
+  const raw =
     item.image_url ||
     item.image ||
     item.photo_url ||
     item.cover_image ||
-    ''
-  );
+    item.thumbnail ||
+    '';
+
+  if (!raw) return '';
+
+  if (typeof raw === 'string' && (raw.startsWith('http://') || raw.startsWith('https://'))) {
+    return raw;
+  }
+
+  if (typeof raw === 'string' && raw.startsWith('/')) {
+    return raw;
+  }
+
+  return raw;
 }
 
 export default function Page() {
@@ -109,56 +113,46 @@ export default function Page() {
   const [savedIds, setSavedIds] = useState([]);
 
   useEffect(() => {
-    const loadListings = async () => {
+    async function loadListings() {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from('listings')
-        .select('*')
-        .order('date', { ascending: true, nullsFirst: false });
+      const { data, error } = await supabase.from('listings').select('*');
 
       if (error) {
-        console.error('Supabase load error:', error);
+        console.error('Error loading listings:', error);
         setListings([]);
       } else {
         setListings(data || []);
       }
 
       setLoading(false);
-    };
+    }
 
     loadListings();
   }, []);
 
   const categories = useMemo(() => {
     const set = new Set();
-
-    listings.forEach((item) => {
-      const category = getListingCategory(item);
-      if (category) set.add(category);
-    });
-
+    listings.forEach((item) => set.add(getCategory(item)));
     return ['All', ...Array.from(set)];
   }, [listings]);
 
   const filteredListings = useMemo(() => {
     return listings.filter((item) => {
-      const island = getListingIsland(item);
-      const category = getListingCategory(item);
-      const title = getListingTitle(item).toLowerCase();
-      const location = getListingLocation(item).toLowerCase();
+      const island = getIsland(item);
+      const category = getCategory(item);
+      const title = getTitle(item).toLowerCase();
+      const location = getLocation(item).toLowerCase();
+      const description = getDescription(item).toLowerCase();
       const query = searchQuery.trim().toLowerCase();
 
-      const matchesIsland =
-        selectedIsland === 'All' || island === selectedIsland;
-
-      const matchesCategory =
-        selectedCategory === 'All' || category === selectedCategory;
-
+      const matchesIsland = selectedIsland === 'All' || island === selectedIsland;
+      const matchesCategory = selectedCategory === 'All' || category === selectedCategory;
       const matchesSearch =
         !query ||
         title.includes(query) ||
         location.includes(query) ||
+        description.includes(query) ||
         category.toLowerCase().includes(query) ||
         island.toLowerCase().includes(query);
 
@@ -170,52 +164,39 @@ export default function Page() {
     return filteredListings.filter((item) => savedIds.includes(item.id));
   }, [filteredListings, savedIds]);
 
-  const featuredListings = useMemo(() => {
-    return filteredListings.slice(0, 12);
-  }, [filteredListings]);
-
-  const toggleSaved = (id) => {
+  function toggleSaved(id) {
     setSavedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  };
+  }
 
-  const renderCard = (item) => {
-    const image = getListingImage(item);
-    const title = getListingTitle(item);
-    const category = getListingCategory(item);
-    const island = getListingIsland(item);
-    const location = getListingLocation(item);
-    const date = getListingDate(item);
-    const price = getListingPrice(item);
+  function ListingCard({ item }) {
+    const image = getImage(item);
+    const title = getTitle(item);
+    const category = getCategory(item);
+    const island = getIsland(item);
+    const location = getLocation(item);
+    const date = getDate(item);
+    const price = getPrice(item);
     const isSaved = savedIds.includes(item.id);
 
     return (
-      <article
-        key={item.id}
-        className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition hover:bg-white/10"
-      >
-        <div className="relative h-44 w-full bg-white/5">
-          {image ? (
-            <img
-              src={image}
-              alt={title}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-white/40">
-              No image
-            </div>
-          )}
-
-          <button
-            onClick={() => toggleSaved(item.id)}
-            className="absolute right-3 top-3 rounded-full bg-black/50 px-3 py-1 text-sm text-white backdrop-blur"
-            aria-label={isSaved ? 'Remove from saved' : 'Save event'}
-          >
-            {isSaved ? '★ Saved' : '☆ Save'}
-          </button>
-        </div>
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition hover:bg-white/10">
+        <Link href={`/listing/${item.id}`} className="block">
+          <div className="h-44 w-full bg-white/5">
+            {image ? (
+              <img
+                src={image}
+                alt={title}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-white/40">
+                No image
+              </div>
+            )}
+          </div>
+        </Link>
 
         <div className="space-y-3 p-4">
           <div className="flex items-center justify-between gap-3">
@@ -225,173 +206,65 @@ export default function Page() {
             <span className="text-sm text-white/60">{island}</span>
           </div>
 
-          <div>
+          <Link href={`/listing/${item.id}`} className="block">
             <h3 className="text-lg font-semibold text-white">{title}</h3>
             <p className="mt-1 text-sm text-white/65">{location}</p>
-          </div>
+          </Link>
 
           <div className="flex items-center justify-between text-sm text-white/75">
             <span>{formatDate(date)}</span>
             <span className="font-medium text-white">{formatPrice(price)}</span>
           </div>
-        </div>
-      </article>
-    );
-  };
 
-  const renderHome = () => (
-    <>
-      <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/20 via-sky-500/10 to-indigo-500/10 p-6 shadow-2xl shadow-cyan-900/20">
-        <div className="space-y-3">
-          <p className="text-sm uppercase tracking-[0.25em] text-cyan-300/80">
-            869 To Do
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Find what’s happening in St. Kitts and Nevis
-          </h1>
-          <p className="max-w-2xl text-sm text-white/70 sm:text-base">
-            Live event listings, island filters, category filters, and a cleaner
-            mobile-friendly layout connected to Supabase.
-          </p>
-        </div>
+          <div className="flex items-center justify-between gap-3">
+            <Link
+              href={`/listing/${item.id}`}
+              className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-medium text-slate-950"
+            >
+              View listing
+            </Link>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-            <div className="text-2xl font-bold text-white">{listings.length}</div>
-            <div className="text-sm text-white/60">Total listings</div>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-            <div className="text-2xl font-bold text-white">{featuredListings.length}</div>
-            <div className="text-sm text-white/60">Showing now</div>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-            <div className="text-2xl font-bold text-white">{savedIds.length}</div>
-            <div className="text-sm text-white/60">Saved events</div>
+            <button
+              onClick={() => toggleSaved(item.id)}
+              className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+            >
+              {isSaved ? 'Saved' : 'Save'}
+            </button>
           </div>
         </div>
-      </section>
-
-      <section className="space-y-4">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Search events, venues, islands, categories..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white placeholder:text-white/35 outline-none ring-0 transition focus:border-cyan-400/50"
-            />
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <p className="mb-2 text-sm font-medium text-white/70">Island</p>
-              <div className="flex flex-wrap gap-2">
-                {islandOptions.map((option) => (
-                  <button
-                    key={option}
-                    onClick={() => setSelectedIsland(option)}
-                    className={`rounded-full px-4 py-2 text-sm transition ${
-                      selectedIsland === option
-                        ? 'bg-cyan-400 text-slate-950'
-                        : 'bg-white/5 text-white hover:bg-white/10'
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-2 text-sm font-medium text-white/70">Category</p>
-              <div className="flex flex-wrap gap-2">
-                {categories.map((option) => (
-                  <button
-                    key={option}
-                    onClick={() => setSelectedCategory(option)}
-                    className={`rounded-full px-4 py-2 text-sm transition ${
-                      selectedCategory === option
-                        ? 'bg-cyan-400 text-slate-950'
-                        : 'bg-white/5 text-white hover:bg-white/10'
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
-            Loading listings...
-          </div>
-        ) : featuredListings.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
-            No listings match those filters yet.
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {featuredListings.map(renderCard)}
-          </div>
-        )}
-      </section>
-    </>
-  );
-
-  const renderSearch = () => (
-    <section className="space-y-4">
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-        <input
-          type="text"
-          placeholder="Search all listings..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white placeholder:text-white/35 outline-none focus:border-cyan-400/50"
-        />
       </div>
+    );
+  }
 
-      {filteredListings.length === 0 ? (
+  function renderGrid(items) {
+    if (loading) {
+      return (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
-          No results found.
+          Loading listings...
         </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredListings.map(renderCard)}
-        </div>
-      )}
-    </section>
-  );
+      );
+    }
 
-  const renderMap = () => (
-    <section className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
-      <h2 className="text-2xl font-semibold text-white">Map view</h2>
-      <p className="mt-2 text-white/65">
-        Placeholder for the next step. Once the homepage is working, this can become
-        a real map page or a dedicated route.
-      </p>
-    </section>
-  );
-
-  const renderSaved = () => (
-    <section className="space-y-4">
-      {savedListings.length === 0 ? (
+    if (!items.length) {
+      return (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
-          You have no saved events yet.
+          No listings found.
         </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {savedListings.map(renderCard)}
-        </div>
-      )}
-    </section>
-  );
+      );
+    }
+
+    return (
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {items.map((item) => (
+          <ListingCard key={item.id} item={item} />
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <div className="mx-auto max-w-7xl px-4 pb-28 pt-6 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-slate-950 pb-28 text-white">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
             <p className="text-sm text-cyan-300/80">Live event app</p>
@@ -403,13 +276,114 @@ export default function Page() {
           </div>
         </div>
 
-        {activeView === 'Home' && renderHome()}
-        {activeView === 'Search' && renderSearch()}
-        {activeView === 'Map' && renderMap()}
-        {activeView === 'Saved' && renderSaved()}
+        {activeView === 'Home' && (
+          <div className="space-y-6">
+            <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/20 via-sky-500/10 to-indigo-500/10 p-6">
+              <div className="space-y-3">
+                <p className="text-sm uppercase tracking-[0.25em] text-cyan-300/80">
+                  869 To Do
+                </p>
+                <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                  Find what’s happening in St. Kitts and Nevis
+                </h2>
+                <p className="max-w-2xl text-sm text-white/70 sm:text-base">
+                  Live event listings with working filters, saved items, and clickable listings.
+                </p>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search events, venues, islands, categories..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white placeholder:text-white/35 outline-none focus:border-cyan-400/50"
+                />
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="mb-2 text-sm font-medium text-white/70">Island</p>
+                  <div className="flex flex-wrap gap-2">
+                    {islandOptions.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => setSelectedIsland(option)}
+                        className={`rounded-full px-4 py-2 text-sm transition ${
+                          selectedIsland === option
+                            ? 'bg-cyan-400 text-slate-950'
+                            : 'bg-white/5 text-white hover:bg-white/10'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-sm font-medium text-white/70">Category</p>
+                  <div className="flex flex-wrap gap-2">
+                    {categories.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => setSelectedCategory(option)}
+                        className={`rounded-full px-4 py-2 text-sm transition ${
+                          selectedCategory === option
+                            ? 'bg-cyan-400 text-slate-950'
+                            : 'bg-white/5 text-white hover:bg-white/10'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {renderGrid(filteredListings)}
+          </div>
+        )}
+
+        {activeView === 'Search' && (
+          <div className="space-y-4">
+            <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <input
+                type="text"
+                placeholder="Search all listings..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white placeholder:text-white/35 outline-none focus:border-cyan-400/50"
+              />
+            </section>
+
+            {renderGrid(filteredListings)}
+          </div>
+        )}
+
+        {activeView === 'Map' && (
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+            <h2 className="text-2xl font-semibold text-white">Map view</h2>
+            <p className="mt-2 text-white/65">
+              Placeholder for now. The button works, but the real map can come next.
+            </p>
+          </section>
+        )}
+
+        {activeView === 'Saved' && (
+          <div className="space-y-4">
+            <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-sm text-white/70">Saved listings</p>
+            </section>
+            {renderGrid(savedListings)}
+          </div>
+        )}
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-slate-950/90 backdrop-blur">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-slate-950/95 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-around px-2 py-3">
           {viewOptions.map((view) => (
             <button
