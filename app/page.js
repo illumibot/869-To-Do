@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../lib/supabase';
 
 const islands = ['All', 'St. Kitts', 'Nevis'];
 const views = ['Home', 'Search', 'Map', 'Saved'];
