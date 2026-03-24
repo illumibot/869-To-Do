@@ -44,8 +44,6 @@ if (deleteError) {
   alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
 }
 
-loadSubmissions();
-  }, []);
 
   return (
     <main className="min-h-screen bg-slate-950 p-6 text-white">
