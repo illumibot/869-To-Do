@@ -18,12 +18,13 @@ export default function AdminPage() {
   }
 
   async function approveListing(item) {
-   const { error } = await supabase.from('listings').insert([
+  const { error } = await supabase.from('listings').insert([
   {
     title: item.title,
     description: item.description,
     category: item.category,
-   venue_name: item.title,
+    venue_name: item.title,
+    start_time: item.start_date || new Date().toISOString(),
   },
 ]);
 
