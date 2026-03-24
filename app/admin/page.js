@@ -8,44 +8,57 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   async function loadSubmissions() {
+    setLoading(true);
+
     const { data, error } = await supabase
       .from('listing_submissions')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (!error) setSubmissions(data || []);
+    if (error) {
+      console.error('Load submissions error:', error);
+      alert(`Error loading submissions: ${error.message}`);
+      setLoading(false);
+      return;
+    }
+
+    setSubmissions(data || []);
     setLoading(false);
   }
 
+  useEffect(() => {
+    loadSubmissions();
+  }, []);
+
   async function approveListing(item) {
-  const { error } = await supabase.from('listings').insert([
-  {
-    title: item.title,
-    description: item.description,
-    category: item.category,
-    venue_name: item.title,
-    start_time: item.start_date || new Date().toISOString(),
-  },
-]);
+    const { error } = await supabase.from('listings').insert([
+      {
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        venue_name: item.title,
+        start_time: item.start_date || new Date().toISOString(),
+      },
+    ]);
 
-  if (error) {
-  console.error('Approve listing error:', error);
-  alert(`Error approving listing: ${error.message}`);
-  return;
-}
+    if (error) {
+      console.error('Approve listing error:', error);
+      alert(`Error approving listing: ${error.message}`);
+      return;
+    }
 
-   const { error: deleteError } = await supabase
-  .from('listing_submissions')
-  .delete()
-  .eq('id', item.id);
+    const { error: deleteError } = await supabase
+      .from('listing_submissions')
+      .delete()
+      .eq('id', item.id);
 
-if (deleteError) {
-  console.error('Delete submission error:', deleteError);
-  alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
-}
+    if (deleteError) {
+      console.error('Delete submission error:', deleteError);
+      alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
+    }
 
-loadSubmissions();
-};
+    loadSubmissions();
+  }
 
   return (
     <main className="min-h-screen bg-slate-950 p-6 text-white">
