@@ -34,12 +34,17 @@ export default function AdminPage() {
   return;
 }
 
-    await supabase.from('listing_submissions').delete().eq('id', item.id);
-    loadSubmissions();
-  }
+   const { error: deleteError } = await supabase
+  .from('listing_submissions')
+  .delete()
+  .eq('id', item.id);
 
-  useEffect(() => {
-    loadSubmissions();
+if (deleteError) {
+  console.error('Delete submission error:', deleteError);
+  alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
+}
+
+loadSubmissions();
   }, []);
 
   return (
