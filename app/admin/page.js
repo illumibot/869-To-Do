@@ -13,12 +13,11 @@ export default function AdminPage() {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (!error) setSubmissions(data);
+    if (!error) setSubmissions(data || []);
     setLoading(false);
   }
 
   async function approveListing(item) {
-    // insert into listings table
     const { error } = await supabase.from('listings').insert([
       {
         title: item.title,
@@ -27,49 +26,47 @@ export default function AdminPage() {
       },
     ]);
 
-    if (!error) {
-      // remove from submissions (optional but cleaner)
-      await supabase
-        .from('listing_submissions')
-        .delete()
-        .eq('id', item.id);
-
-      loadSubmissions();
-    } else {
+    if (error) {
       console.error(error);
       alert('Error approving listing');
+      return;
     }
+
+    await supabase.from('listing_submissions').delete().eq('id', item.id);
+    loadSubmissions();
   }
 
   useEffect(() => {
     loadSubmissions();
   }, []);
 
-  if (loading) return <div className="p-6 text-white">Loading...</div>;
-
   return (
-    <div className="p-6 text-white">
-      <h1 className="text-2xl mb-6">Admin – Approve Listings</h1>
+    <main className="min-h-screen bg-slate-950 p-6 text-white">
+      <h1 className="mb-6 text-2xl font-bold">Admin – Approve Listings</h1>
 
-      {submissions.length === 0 && <p>No submissions</p>}
+      {loading && <p>Loading...</p>}
 
-      {submissions.map((item) => (
-        <div
-          key={item.id}
-          className="mb-4 rounded-xl border border-white/10 p-4"
-        >
-          <h2 className="text-lg font-bold">{item.title}</h2>
-          <p className="text-sm opacity-70">{item.description}</p>
-          <p className="text-xs mt-2">{item.category}</p>
+      {!loading && submissions.length === 0 && <p>No submissions</p>}
 
-          <button
-            onClick={() => approveListing(item)}
-            className="mt-3 rounded-lg bg-green-500 px-4 py-2 text-black"
+      <div className="space-y-4">
+        {submissions.map((item) => (
+          <div
+            key={item.id}
+            className="rounded-xl border border-white/10 bg-white/5 p-4"
           >
-            Approve
-          </button>
-        </div>
-      ))}
-    </div>
+            <h2 className="text-lg font-bold">{item.title}</h2>
+            <p className="mt-2 text-sm text-white/70">{item.description}</p>
+            <p className="mt-2 text-xs text-cyan-300">{item.category}</p>
+
+            <button
+              onClick={() => approveListing(item)}
+              className="mt-4 rounded-lg bg-green-500 px-4 py-2 font-medium text-black"
+            >
+              Approve
+            </button>
+          </div>
+        ))}
+      </div>
+    </main>
   );
 }
