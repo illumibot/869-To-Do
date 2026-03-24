@@ -67,12 +67,12 @@ export default function SubmitPage() {
 
     const { error } = await supabase.from('listing_submissions').insert([payload]);
 
-    if (error) {
-      console.error(error);
-      setError('Submission failed. Please try again.');
-      setLoading(false);
-      return;
-    }
+   if (error) {
+  console.error('Supabase insert error:', error);
+  setError(`Submission failed: ${error.message}`);
+  setLoading(false);
+  return;
+}
 
     setMessage('Thanks. Your listing was submitted for review.');
     setForm(initialForm);
