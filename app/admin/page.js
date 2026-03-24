@@ -23,7 +23,7 @@ export default function AdminPage() {
     title: item.title,
     description: item.description,
     category: item.category,
-    venue_name: item.location || item.business_name || item.title,
+   venue_name: item.title,
   },
 ]);
 
