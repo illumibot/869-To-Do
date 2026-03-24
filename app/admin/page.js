@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase';
 export default function AdminPage() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [approvedIds, setApprovedIds] = useState([]);
 
   async function loadSubmissions() {
     setLoading(true);
@@ -52,12 +53,13 @@ export default function AdminPage() {
       .delete()
       .eq('id', item.id);
 
-    if (deleteError) {
-      console.error('Delete submission error:', deleteError);
-      alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
-    }
+   if (deleteError) {
+  console.error('Delete submission error:', deleteError);
+  alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
+}
 
-    loadSubmissions();
+setApprovedIds((prev) => [...prev, item.id]);
+loadSubmissions();
   }
 
   return (
@@ -78,12 +80,17 @@ export default function AdminPage() {
             <p className="mt-2 text-sm text-white/70">{item.description}</p>
             <p className="mt-2 text-xs text-cyan-300">{item.category}</p>
 
-            <button
-              onClick={() => approveListing(item)}
-              className="mt-4 rounded-lg bg-green-500 px-4 py-2 font-medium text-black"
-            >
-              Approve
-            </button>
+        <button
+  onClick={() => approveListing(item)}
+  disabled={approvedIds.includes(item.id)}
+  className={`mt-4 rounded-lg px-4 py-2 font-medium ${
+    approvedIds.includes(item.id)
+      ? 'bg-red-500 text-white cursor-not-allowed'
+      : 'bg-green-500 text-black'
+  }`}
+>
+  {approvedIds.includes(item.id) ? 'Approved' : 'Approve'}
+</button>
           </div>
         ))}
       </div>
