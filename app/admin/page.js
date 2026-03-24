@@ -18,13 +18,14 @@ export default function AdminPage() {
   }
 
   async function approveListing(item) {
-    const { error } = await supabase.from('listings').insert([
-      {
-        title: item.title,
-        description: item.description,
-        category: item.category,
-      },
-    ]);
+   const { error } = await supabase.from('listings').insert([
+  {
+    title: item.title,
+    description: item.description,
+    category: item.category,
+    venue_name: item.location || item.business_name || item.title,
+  },
+]);
 
   if (error) {
   console.error('Approve listing error:', error);
