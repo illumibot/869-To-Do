@@ -26,11 +26,11 @@ export default function AdminPage() {
       },
     ]);
 
-    if (error) {
-      console.error(error);
-      alert('Error approving listing');
-      return;
-    }
+  if (error) {
+  console.error('Approve listing error:', error);
+  alert(`Error approving listing: ${error.message}`);
+  return;
+}
 
     await supabase.from('listing_submissions').delete().eq('id', item.id);
     loadSubmissions();
