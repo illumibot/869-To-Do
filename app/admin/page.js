@@ -31,36 +31,47 @@ export default function AdminPage() {
     loadSubmissions();
   }, []);
 
-  async function approveListing(item) {
-    const { error } = await supabase.from('listings').insert([
-      {
-        title: item.title,
-        description: item.description,
-        category: item.category,
-        venue_name: item.title,
-        start_time: item.start_date || new Date().toISOString(),
-      },
-    ]);
+async function approveListing(item) {
+  const { error } = await supabase.from('listings').insert([
+    {
+      title: item.title,
+      description: item.description,
+      category: item.category,
 
-    if (error) {
-      console.error('Approve listing error:', error);
-      alert(`Error approving listing: ${error.message}`);
-      return;
-    }
+      // ✅ ADD THESE (this fixes your app)
+      island: item.island,
+      location: item.location,
+      event_date: item.event_date,
+      image_url: item.image_url,
+      contact_name: item.contact_name,
+      contact_phone: item.contact_phone,
+      website_url: item.website_url,
 
-    const { error: deleteError } = await supabase
-      .from('listing_submissions')
-      .delete()
-      .eq('id', item.id);
+      // keep these
+      venue_name: item.location || item.title,
+      start_time: item.event_date || new Date().toISOString(),
+    },
+  ]);
 
-   if (deleteError) {
-  console.error('Delete submission error:', deleteError);
-  alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
-}
-
-setApprovedIds((prev) => [...prev, item.id]);
-loadSubmissions();
+  if (error) {
+    console.error('Approve listing error:', error);
+    alert(`Error approving listing: ${error.message}`);
+    return;
   }
+
+  const { error: deleteError } = await supabase
+    .from('listing_submissions')
+    .delete()
+    .eq('id', item.id);
+
+  if (deleteError) {
+    console.error('Delete submission error:', deleteError);
+    alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
+  }
+
+  setApprovedIds((prev) => [...prev, item.id]);
+  loadSubmissions();
+}
 
   return (
     <main className="min-h-screen bg-slate-950 p-6 text-white">
