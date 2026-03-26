@@ -309,7 +309,8 @@ const categories = useMemo(() => {
       </div>
     );
   }
-
+const featured = filteredListings.filter(l => l.is_featured);
+const regular = filteredListings.filter(l => !l.is_featured);
   return (
     <main className="min-h-screen bg-slate-950 pb-24 text-white">
       <div className="mx-auto max-w-6xl px-4 py-6">
@@ -383,7 +384,18 @@ const categories = useMemo(() => {
               </div>
             </div>
 
-            {renderCards(filteredListings)}
+           const featured = filteredListings.filter(l => l.is_featured);
+const regular = filteredListings.filter(l => !l.is_featured);
+
+{featured.length > 0 && (
+  <>
+    <h2 className="text-xl font-semibold mb-3">Featured</h2>
+    {renderCards(featured)}
+  </>
+)}
+
+<h2 className="text-xl font-semibold mt-6 mb-3">All Events</h2>
+{renderCards(regular)}
           </div>
         )}
 
@@ -393,7 +405,15 @@ const categories = useMemo(() => {
               <h2 className="text-2xl font-bold">Search</h2>
               <p className="mt-2 text-white/65">Search is using the same live listings.</p>
             </div>
-            {renderCards(filteredListings)}
+           {featured.length > 0 && (
+  <>
+    <h2 className="text-xl font-semibold mb-3">Featured</h2>
+    {renderCards(featured)}
+  </>
+)}
+
+<h2 className="text-xl font-semibold mt-6 mb-3">All Events</h2>
+{renderCards(regular)}
           </div>
         )}
 
