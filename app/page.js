@@ -16,18 +16,21 @@ function getCategory(item) {
 }
 
 function getIsland(item) {
+  if (item.island === 'St. Kitts' || item.island === 'Nevis') return item.island;
+
   const raw = String(item.island || item.location_island || item.region || '').toLowerCase();
   if (raw.includes('nevis')) return 'Nevis';
   if (raw.includes('kitts')) return 'St. Kitts';
-  return item.island || item.location_island || 'Other';
+
+  return 'St. Kitts';
 }
 
 function getLocation(item) {
-  return item.location || item.venue || item.place || item.address || 'Location TBA';
+  return item.location || item.venue_name || item.venue || item.place || item.address || 'Location TBA';
 }
 
 function getDate(item) {
-  return item.date || item.event_date || item.starts_at || item.start_date || '';
+  return item.start_time || item.event_date || item.date || item.starts_at || item.start_date || '';
 }
 
 function getPrice(item) {
@@ -38,20 +41,36 @@ function getImage(item) {
   return item.image_url || item.image || item.photo_url || item.cover_image || '';
 }
 
+function getWebsite(item) {
+  return item.website_url || item.website || '';
+}
+
+function getPhone(item) {
+  return item.contact_phone || item.phone || '';
+}
+
+function getDescription(item) {
+  return item.description || 'No description available.';
+}
+
 function formatDate(value) {
   if (!value) return 'Date TBA';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString(undefined, {
+
+  return d.toLocaleString(undefined, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
   });
 }
 
 function formatPrice(value) {
   const n = Number(value);
   if (!value || Number.isNaN(n) || n === 0) return 'Free';
+
   return new Intl.NumberFormat(undefined, {
     style: 'currency',
     currency: 'USD',
@@ -67,29 +86,40 @@ export default function Page() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [savedIds, setSavedIds] = useState([]);
+  const [openIds, setOpenIds] = useState([]);
 
   useEffect(() => {
     async function loadListings() {
       setLoading(true);
-      const { data, error } = await supabase.from('listings').select('*');
+
+      const { data, error } = await supabase
+        .from('listings')
+        .select('*')
+        .order('start_time', { ascending: true });
+
       if (error) {
-        console.error(error);
+        console.error('Load listings error:', error);
         setListings([]);
       } else {
         setListings(data || []);
       }
+
       setLoading(false);
     }
+
     loadListings();
   }, []);
 
-const categories = useMemo(() => {
-  const set = new Set(['Music', 'Tours', 'Food']); // force these
+  const categories = useMemo(() => {
+    const set = new Set();
 
-  listings.forEach((item) => set.add(getCategory(item)));
+    listings.forEach((item) => {
+      const category = getCategory(item);
+      if (category) set.add(category);
+    });
 
-  return ['All', ...Array.from(set)];
-}, [listings]);
+    return ['All', ...Array.from(set)];
+  }, [listings]);
 
   const filteredListings = useMemo(() => {
     return listings.filter((item) => {
@@ -97,6 +127,7 @@ const categories = useMemo(() => {
       const category = getCategory(item);
       const title = getTitle(item).toLowerCase();
       const location = getLocation(item).toLowerCase();
+      const description = getDescription(item).toLowerCase();
       const q = search.trim().toLowerCase();
 
       const islandOk = selectedIsland === 'All' || island === selectedIsland;
@@ -105,6 +136,7 @@ const categories = useMemo(() => {
         !q ||
         title.includes(q) ||
         location.includes(q) ||
+        description.includes(q) ||
         island.toLowerCase().includes(q) ||
         category.toLowerCase().includes(q);
 
@@ -118,6 +150,12 @@ const categories = useMemo(() => {
 
   function toggleSaved(id) {
     setSavedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+
+  function toggleOpen(id) {
+    setOpenIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   }
@@ -149,7 +187,11 @@ const categories = useMemo(() => {
           const location = getLocation(item);
           const date = getDate(item);
           const price = getPrice(item);
+          const description = getDescription(item);
+          const website = getWebsite(item);
+          const phone = getPhone(item);
           const saved = savedIds.includes(item.id);
+          const isOpen = openIds.includes(item.id);
 
           return (
             <div
@@ -158,7 +200,14 @@ const categories = useMemo(() => {
             >
               <div className="h-48 bg-black/20">
                 {image ? (
-                  <img src={image} alt={title} className="h-full w-full object-cover" />
+                  <img
+                    src={image}
+                    alt={title}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
                 ) : (
                   <div className="flex h-full items-center justify-center text-white/40">
                     No image
@@ -184,13 +233,41 @@ const categories = useMemo(() => {
                   <span className="font-medium text-white">{formatPrice(price)}</span>
                 </div>
 
+                {isOpen && (
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/75">
+                    <p className="mb-3">{description}</p>
+
+                    {phone && (
+                      <p className="mb-2">
+                        <span className="text-white/50">Phone: </span>
+                        {phone}
+                      </p>
+                    )}
+
+                    {website && (
+                      <p className="break-all">
+                        <span className="text-white/50">Website: </span>
+                        <a
+                          href={website}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-cyan-300 underline"
+                        >
+                          {website}
+                        </a>
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex gap-2">
                   <button
                     className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-medium text-slate-950"
-                    onClick={() => alert(`Clicked listing: ${title}`)}
+                    onClick={() => toggleOpen(item.id)}
                   >
-                    Open
+                    {isOpen ? 'Close' : 'Open'}
                   </button>
+
                   <button
                     className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white/80"
                     onClick={() => toggleSaved(item.id)}
@@ -213,15 +290,17 @@ const categories = useMemo(() => {
           <div>
             <p className="text-sm text-cyan-300/80">869 To Do</p>
             <h1 className="text-3xl font-bold">What’s on</h1>
-    <div className="mb-6 flex gap-3">
-  <Link
-    href="/submit"
-    className="inline-block rounded-xl bg-cyan-400 px-4 py-3 text-sm font-medium text-slate-950"
-  >
-    Submit a Listing
-  </Link>
-</div>
+
+            <div className="mb-6 mt-3 flex gap-3">
+              <Link
+                href="/submit"
+                className="inline-block rounded-xl bg-cyan-400 px-4 py-3 text-sm font-medium text-slate-950"
+              >
+                Submit a Listing
+              </Link>
+            </div>
           </div>
+
           <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70">
             {loading ? 'Loading...' : `${filteredListings.length} results`}
           </div>
@@ -285,7 +364,7 @@ const categories = useMemo(() => {
           <div className="space-y-4">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <h2 className="text-2xl font-bold">Search</h2>
-              <p className="mt-2 text-white/65">This view is working.</p>
+              <p className="mt-2 text-white/65">Search is using the same live listings.</p>
             </div>
             {renderCards(filteredListings)}
           </div>
@@ -294,7 +373,7 @@ const categories = useMemo(() => {
         {activeView === 'Map' && (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
             <h2 className="text-2xl font-bold">Map</h2>
-            <p className="mt-2 text-white/65">This button works too.</p>
+            <p className="mt-2 text-white/65">Map view not built yet.</p>
           </div>
         )}
 
