@@ -92,10 +92,14 @@ export default function Page() {
     async function loadListings() {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from('listings')
-        .select('*')
-        .order('start_time', { ascending: true });
+     const now = new Date().toISOString();
+
+const { data, error } = await supabase
+  .from('listings')
+  .select('*')
+  .gte('end_time', now)
+  .order('start_time', { ascending: true });
+       
 
       if (error) {
         console.error('Load listings error:', error);
