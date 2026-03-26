@@ -97,8 +97,9 @@ export default function Page() {
 const { data, error } = await supabase
   .from('listings')
   .select('*')
-  .gte('end_time', now)
-  .order('start_time', { ascending: true });
+ .gte('end_time', now)
+.order('is_featured', { ascending: false })
+.order('start_time', { ascending: true });
        
 
       if (error) {
