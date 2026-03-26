@@ -115,16 +115,25 @@ const { data, error } = await supabase
     loadListings();
   }, []);
 
-  const categories = useMemo(() => {
-    const set = new Set();
+const categories = useMemo(() => {
+  const defaultCategories = ['Events', 'Food', 'Music'];
+  const foundCategories = new Set();
 
-    listings.forEach((item) => {
-      const category = getCategory(item);
-      if (category) set.add(category);
-    });
+  listings.forEach((item) => {
+    const category = getCategory(item);
+    if (category) foundCategories.add(category);
+  });
 
-    return ['All', ...Array.from(set)];
-  }, [listings]);
+  const extras = Array.from(foundCategories).filter(
+    (category) => !defaultCategories.includes(category)
+  );
+
+  return [
+    'All',
+    ...defaultCategories,
+    ...extras,
+  ];
+}, [listings]);
 
   const filteredListings = useMemo(() => {
     return listings.filter((item) => {
@@ -199,10 +208,14 @@ const { data, error } = await supabase
           const isOpen = openIds.includes(item.id);
 
           return (
-            <div
-              key={item.id}
-              className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
-            >
+        <div
+  key={item.id}
+  className={`overflow-hidden rounded-2xl border bg-white/5 ${
+    item.is_featured
+      ? 'border-yellow-400/70 ring-1 ring-yellow-300/40 shadow-[0_0_20px_rgba(250,204,21,0.12)] sm:col-span-2'
+      : 'border-white/10'
+  }`}
+>
               <div className="h-48 bg-black/20">
                 {image ? (
                   <img
@@ -221,12 +234,21 @@ const { data, error } = await supabase
               </div>
 
               <div className="space-y-3 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="rounded-full bg-cyan-400/15 px-3 py-1 text-xs text-cyan-300">
-                    {category}
-                  </span>
-                  <span className="text-sm text-white/60">{island}</span>
-                </div>
+              <div className="flex items-center justify-between gap-2">
+  <div className="flex flex-wrap items-center gap-2">
+    <span className="rounded-full bg-cyan-400/15 px-3 py-1 text-xs text-cyan-300">
+      {category}
+    </span>
+
+    {item.is_featured && (
+      <span className="rounded-full bg-yellow-400/15 px-3 py-1 text-xs font-semibold text-yellow-300">
+        ★ Featured
+      </span>
+    )}
+  </div>
+
+  <span className="text-sm text-white/60">{island}</span>
+</div>
 
                 <div>
                   <h3 className="text-lg font-semibold text-white">{title}</h3>
