@@ -91,24 +91,18 @@ function formatEventDate(value) {
   return `${weekday} ${month} ${day} ${hours}${ampm}`;
 }
 
-function ListingCard({ item, onOpen, onImageOpen }) {
+function ListingCard({ item, onOpen }) {
   const featured = !!item.is_featured;
 
   return (
     <div
       className={`rounded-2xl overflow-hidden transition ${
         featured
-          ? 'bg-yellow-400/10 border-2 border-yellow-400 shadow-[0_0_25px_rgba(250,204,21,0.22)]'
-          : 'bg-white/5 border border-white/10'
+          ? 'border-2 border-yellow-400 bg-yellow-400/10 shadow-[0_0_25px_rgba(250,204,21,0.22)]'
+          : 'border border-white/10 bg-white/5'
       }`}
     >
-      <div
-        className="relative h-44 cursor-pointer bg-black/20"
-        onClick={() => {
-          const image = getImage(item);
-          if (image) onImageOpen(image);
-        }}
-      >
+      <div className="relative h-44 bg-black/20">
         {featured && (
           <div className="absolute left-2 top-2 z-10 rounded bg-yellow-400 px-2 py-1 text-[11px] font-bold text-black">
             FEATURED
@@ -130,7 +124,7 @@ function ListingCard({ item, onOpen, onImageOpen }) {
 
       <div className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-2 text-xs text-white/60">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2">
             <span>{getCategory(item)}</span>
             {featured && (
               <span className="rounded-full bg-yellow-400 px-2 py-1 text-[11px] font-semibold text-black">
@@ -165,16 +159,10 @@ function ListingCard({ item, onOpen, onImageOpen }) {
   );
 }
 
-function FeaturedMiniCard({ item, onOpen, onImageOpen }) {
+function FeaturedMiniCard({ item, onOpen }) {
   return (
-    <div className="w-[230px] shrink-0 overflow-hidden rounded-2xl border border-yellow-400 bg-yellow-400/10 shadow-[0_0_18px_rgba(250,204,21,0.18)]">
-      <div
-        className="relative h-24 cursor-pointer bg-black/20"
-        onClick={() => {
-          const image = getImage(item);
-          if (image) onImageOpen(image);
-        }}
-      >
+    <div className="w-[230px] shrink-0 snap-start overflow-hidden rounded-2xl border border-yellow-400 bg-yellow-400/10 shadow-[0_0_18px_rgba(250,204,21,0.18)]">
+      <div className="relative h-24 bg-black/20">
         <div className="absolute left-2 top-2 z-10 rounded bg-yellow-400 px-2 py-1 text-[10px] font-bold text-black">
           FEATURED
         </div>
@@ -222,7 +210,6 @@ export default function Page() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [openItem, setOpenItem] = useState(null);
-  const [imageView, setImageView] = useState(null);
 
   useEffect(() => {
     async function loadListings() {
@@ -349,13 +336,12 @@ export default function Page() {
               </span>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto pb-1">
+            <div className="snap-x snap-mandatory flex gap-3 overflow-x-auto pb-1 pr-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               {featuredListings.map((item) => (
                 <FeaturedMiniCard
                   key={item.id}
                   item={item}
                   onOpen={setOpenItem}
-                  onImageOpen={setImageView}
                 />
               ))}
             </div>
@@ -383,7 +369,6 @@ export default function Page() {
                   key={item.id}
                   item={item}
                   onOpen={setOpenItem}
-                  onImageOpen={setImageView}
                 />
               ))}
             </div>
@@ -423,7 +408,6 @@ export default function Page() {
                   src={getImage(openItem)}
                   alt={getTitle(openItem)}
                   className="h-52 w-full rounded-xl object-cover"
-                  onClick={() => setImageView(getImage(openItem))}
                 />
               )}
 
@@ -461,19 +445,6 @@ export default function Page() {
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {imageView && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black"
-          onClick={() => setImageView(null)}
-        >
-          <img
-            src={imageView}
-            alt="Listing"
-            className="max-h-full max-w-full object-contain"
-          />
         </div>
       )}
     </main>
