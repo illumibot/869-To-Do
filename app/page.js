@@ -275,7 +275,9 @@ export default function Page() {
       <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
         <div className="space-y-3">
           <div>
-            <h1 className="text-2xl font-bold">869 To Do</h1>
+        <h1 className="text-[2.6rem] font-bold leading-none tracking-tight text-red-500 sm:text-6xl">
+  869 To Do TEST
+</h1>
           </div>
 
           <Link
