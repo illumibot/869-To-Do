@@ -91,7 +91,7 @@ function formatEventDate(value) {
   return `${weekday} ${month} ${day} ${hours}${ampm}`;
 }
 
-function ListingCard({ item, onOpen, onImageOpen, compact = false }) {
+function ListingCard({ item, onOpen, onImageOpen }) {
   const featured = !!item.is_featured;
 
   return (
@@ -103,9 +103,7 @@ function ListingCard({ item, onOpen, onImageOpen, compact = false }) {
       }`}
     >
       <div
-        className={`relative bg-black/20 cursor-pointer ${
-          compact ? 'h-32' : 'h-44'
-        }`}
+        className="relative h-44 cursor-pointer bg-black/20"
         onClick={() => {
           const image = getImage(item);
           if (image) onImageOpen(image);
@@ -130,7 +128,7 @@ function ListingCard({ item, onOpen, onImageOpen, compact = false }) {
         )}
       </div>
 
-      <div className={`${compact ? 'p-3 space-y-2' : 'p-4 space-y-3'}`}>
+      <div className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-2 text-xs text-white/60">
           <div className="flex items-center gap-2 flex-wrap">
             <span>{getCategory(item)}</span>
@@ -143,7 +141,7 @@ function ListingCard({ item, onOpen, onImageOpen, compact = false }) {
           <span>{getIsland(item)}</span>
         </div>
 
-        <h3 className={`${compact ? 'text-base' : 'text-lg'} font-semibold leading-tight text-white`}>
+        <h3 className="text-lg font-semibold leading-tight text-white">
           {getTitle(item)}
         </h3>
 
@@ -158,9 +156,57 @@ function ListingCard({ item, onOpen, onImageOpen, compact = false }) {
 
         <button
           onClick={() => onOpen(item)}
-          className={`w-full rounded-lg bg-cyan-400 font-medium text-black transition active:scale-95 ${
-            compact ? 'py-2 text-sm' : 'py-2.5 text-sm'
-          }`}
+          className="w-full rounded-lg bg-cyan-400 py-2.5 text-sm font-medium text-black transition active:scale-95"
+        >
+          Open
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function FeaturedMiniCard({ item, onOpen, onImageOpen }) {
+  return (
+    <div className="w-[230px] shrink-0 overflow-hidden rounded-2xl border border-yellow-400 bg-yellow-400/10 shadow-[0_0_18px_rgba(250,204,21,0.18)]">
+      <div
+        className="relative h-24 cursor-pointer bg-black/20"
+        onClick={() => {
+          const image = getImage(item);
+          if (image) onImageOpen(image);
+        }}
+      >
+        <div className="absolute left-2 top-2 z-10 rounded bg-yellow-400 px-2 py-1 text-[10px] font-bold text-black">
+          FEATURED
+        </div>
+
+        {getImage(item) ? (
+          <img
+            src={getImage(item)}
+            alt={getTitle(item)}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-white/30">
+            No image
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-1.5 p-2.5">
+        <h3 className="line-clamp-1 text-sm font-semibold text-white">
+          {getTitle(item)}
+        </h3>
+
+        <div className="flex items-center justify-between gap-2 text-[11px] text-white/70">
+          <span className="truncate">{formatEventDate(getDate(item))}</span>
+          <span className="shrink-0 font-semibold text-white">
+            {formatPrice(getPrice(item))}
+          </span>
+        </div>
+
+        <button
+          onClick={() => onOpen(item)}
+          className="w-full rounded-lg bg-cyan-400 py-2 text-xs font-medium text-black transition active:scale-95"
         >
           Open
         </button>
@@ -295,24 +341,22 @@ export default function Page() {
         </div>
 
         {featuredListings.length > 0 && (
-          <section className="sticky top-0 z-30 -mx-4 border-b border-yellow-400/20 bg-slate-950/95 px-4 pb-4 pt-2 backdrop-blur">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="text-lg font-semibold text-yellow-300">Featured</h2>
+          <section className="sticky top-0 z-30 -mx-4 border-b border-yellow-400/20 bg-slate-950/95 px-4 pb-2 pt-2 backdrop-blur">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="text-base font-semibold text-yellow-300">Featured</h2>
               <span className="text-xs text-yellow-200/70">
                 {featuredListings.length} featured
               </span>
             </div>
 
-            <div className="flex gap-4 overflow-x-auto pb-1">
+            <div className="flex gap-3 overflow-x-auto pb-1">
               {featuredListings.map((item) => (
-                <div key={item.id} className="min-w-[280px] max-w-[280px] shrink-0">
-                  <ListingCard
-                    item={item}
-                    compact
-                    onOpen={setOpenItem}
-                    onImageOpen={setImageView}
-                  />
-                </div>
+                <FeaturedMiniCard
+                  key={item.id}
+                  item={item}
+                  onOpen={setOpenItem}
+                  onImageOpen={setImageView}
+                />
               ))}
             </div>
           </section>
