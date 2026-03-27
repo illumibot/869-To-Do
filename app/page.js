@@ -20,14 +20,19 @@ function normalizeIsland(value) {
     .toLowerCase()
     .replace(/\./g, '')
     .replace(/saint/g, 'st')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
 function getIsland(item) {
-  const raw = normalizeIsland(item.island || item.location_island || item.region || '');
+  const raw = normalizeIsland(
+    item.island || item.location_island || item.region || ''
+  );
+
   if (raw.includes('nevis')) return 'Nevis';
-  if (raw.includes('stkitts') || raw.includes('st kitts') || raw.includes('kitts')) return 'St. Kitts';
-  return item.island || item.location_island || 'Other';
+  if (raw.includes('kitts')) return 'St. Kitts';
+
+  return item.island || item.location_island || item.region || 'Other';
 }
 
 function getLocation(item) {
@@ -74,6 +79,7 @@ function getPhone(item) {
 
 function formatDate(value) {
   if (!value) return 'Date TBA';
+
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
 
@@ -88,13 +94,8 @@ function formatDate(value) {
 
 function formatPrice(value) {
   const n = Number(value);
-  if (!value || Number.isNaN(n) || n === 0) return 'Free';
-
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency: 'XCD', // Eastern Caribbean Dollar
-    maximumFractionDigits: 0,
-  }).format(n);
+  if (!n) return 'Free';
+  return `EC$${n.toFixed(0)}`;
 }
 
 export default function Page() {
@@ -121,7 +122,7 @@ export default function Page() {
         .order('start_time', { ascending: true });
 
       if (error) {
-        console.error('Load listings error:', error);
+        console.error(error);
         setListings([]);
       } else {
         setListings(data || []);
@@ -134,29 +135,16 @@ export default function Page() {
   }, []);
 
   const categories = useMemo(() => {
-    const defaultCategories = ['Events', 'Food', 'Music'];
-    const foundCategories = new Set();
-
-    listings.forEach((item) => {
-      const category = getCategory(item);
-      if (category) foundCategories.add(category);
-    });
-
-    const extras = Array.from(foundCategories).filter(
-      (category) => !defaultCategories.includes(category)
-    );
-
-    return ['All', ...defaultCategories, ...extras];
+    const set = new Set();
+    listings.forEach((i) => set.add(getCategory(i)));
+    return ['All', ...Array.from(set)];
   }, [listings]);
 
   const filteredListings = useMemo(() => {
     return listings.filter((item) => {
       const island = getIsland(item);
       const category = getCategory(item);
-      const title = getTitle(item).toLowerCase();
-      const location = getLocation(item).toLowerCase();
-      const description = getDescription(item).toLowerCase();
-      const q = search.trim().toLowerCase();
+      const q = search.toLowerCase();
 
       const islandOk =
         selectedIsland === 'All' ||
@@ -167,22 +155,13 @@ export default function Page() {
 
       const searchOk =
         !q ||
-        title.includes(q) ||
-        location.includes(q) ||
-        description.includes(q) ||
-        island.toLowerCase().includes(q) ||
-        category.toLowerCase().includes(q);
+        getTitle(item).toLowerCase().includes(q) ||
+        getLocation(item).toLowerCase().includes(q) ||
+        getDescription(item).toLowerCase().includes(q);
 
       return islandOk && categoryOk && searchOk;
     });
   }, [listings, selectedIsland, selectedCategory, search]);
-
-  const savedListings = useMemo(() => {
-    return listings.filter((item) => savedIds.includes(item.id));
-  }, [listings, savedIds]);
-
-  const featured = filteredListings.filter((l) => l.is_featured);
-  const regular = filteredListings.filter((l) => !l.is_featured);
 
   function toggleSaved(id) {
     setSavedIds((prev) =>
@@ -197,131 +176,75 @@ export default function Page() {
   }
 
   function renderCards(items) {
-    if (loading) {
-      return (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
-          Loading listings...
-        </div>
-      );
-    }
-
-    if (!items.length) {
-      return (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
-          No listings found.
-        </div>
-      );
-    }
+    if (loading) return <div className="text-center py-10 text-white/60">Loading...</div>;
+    if (!items.length) return <div className="text-center py-10 text-white/60">No listings</div>;
 
     return (
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {items.map((item) => {
-          const image = getImage(item);
-          const title = getTitle(item);
-          const category = getCategory(item);
-          const island = getIsland(item);
-          const location = getLocation(item);
-          const date = getDate(item);
-          const price = getPrice(item);
-          const description = getDescription(item);
-          const website = getWebsite(item);
-          const phone = getPhone(item);
-          const saved = savedIds.includes(item.id);
           const isOpen = openIds.includes(item.id);
 
           return (
             <div
               key={item.id}
-              className={`overflow-hidden rounded-2xl border bg-white/5 ${
-                item.is_featured
-                  ? 'border-yellow-400/70 ring-1 ring-yellow-300/40 shadow-[0_0_20px_rgba(250,204,21,0.12)] lg:col-span-2'
-                  : 'border-white/10'
-              }`}
+              className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden"
             >
-              <div className="h-48 bg-black/20">
-                {image ? (
+              {/* IMAGE */}
+              <div className="h-44 bg-black/20">
+                {getImage(item) ? (
                   <img
-                    src={image}
-                    alt={title}
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
+                    src={getImage(item)}
+                    className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-white/40">
+                  <div className="flex items-center justify-center h-full text-white/30">
                     No image
                   </div>
                 )}
               </div>
 
-              <div className="space-y-4 p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-cyan-400/15 px-3 py-1 text-xs text-cyan-300">
-                      {category}
-                    </span>
-
-                    {item.is_featured && (
-                      <span className="rounded-full bg-yellow-400/15 px-3 py-1 text-xs font-semibold text-yellow-300">
-                        ★ Featured
-                      </span>
-                    )}
-                  </div>
-
-                  <span className="text-sm text-white/60">{island}</span>
+              {/* CONTENT */}
+              <div className="p-4 space-y-3">
+                <div className="flex justify-between text-xs text-white/60">
+                  <span>{getCategory(item)}</span>
+                  <span>{getIsland(item)}</span>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-white">{title}</h3>
-                  <p className="mt-1 text-sm text-white/65">{location}</p>
-                </div>
+                <h3 className="text-lg font-semibold leading-tight">
+                  {getTitle(item)}
+                </h3>
 
-                <div className="flex items-center justify-between text-sm text-white/75">
-                  <span>{formatDate(date)}</span>
-                  <span className="font-medium text-white">{formatPrice(price)}</span>
+                <p className="text-sm text-white/60">
+                  {getLocation(item)}
+                </p>
+
+                <div className="flex justify-between text-sm">
+                  <span>{formatDate(getDate(item))}</span>
+                  <span className="font-semibold">
+                    {formatPrice(getPrice(item))}
+                  </span>
                 </div>
 
                 {isOpen && (
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/75">
-                    <p className="mb-3">{description}</p>
-
-                    {phone && (
-                      <p className="mb-2 break-all">
-                        <span className="text-white/50">Phone: </span>
-                        {phone}
-                      </p>
-                    )}
-
-                    {website && (
-                      <p className="break-all">
-                        <span className="text-white/50">Website: </span>
-                        <a
-                          href={website}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-cyan-300 underline"
-                        >
-                          {website}
-                        </a>
-                      </p>
-                    )}
+                  <div className="text-sm text-white/70 pt-2 border-t border-white/10">
+                    {getDescription(item)}
                   </div>
                 )}
 
-                <div className="flex gap-2">
+                {/* BUTTONS */}
+                <div className="flex gap-2 pt-2">
                   <button
-                    className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-medium text-slate-950"
                     onClick={() => toggleOpen(item.id)}
+                    className="flex-1 rounded-lg bg-cyan-400 text-black py-2 text-sm font-medium active:scale-95 transition"
                   >
                     {isOpen ? 'Close' : 'Open'}
                   </button>
 
                   <button
-                    className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white/80"
                     onClick={() => toggleSaved(item.id)}
+                    className="flex-1 rounded-lg border border-white/15 py-2 text-sm text-white/80 active:scale-95 transition"
                   >
-                    {saved ? 'Saved' : 'Save'}
+                    Save
                   </button>
                 </div>
               </div>
@@ -333,144 +256,58 @@ export default function Page() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 pb-24 text-white">
-      <div className="mx-auto max-w-6xl px-4 py-6">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm text-cyan-300/80">869 To Do</p>
-            <h1 className="text-3xl font-bold">What’s on</h1>
+    <main className="min-h-screen bg-slate-950 text-white pb-24">
+      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
 
-            <div className="mb-6 mt-3 flex gap-3">
-              <Link
-                href="/submit"
-                className="inline-block rounded-xl bg-cyan-400 px-4 py-3 text-sm font-medium text-slate-950"
-              >
-                Submit a Listing
-              </Link>
-            </div>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold">869 To Do</h1>
 
-          <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70">
-            {loading ? 'Loading...' : `${filteredListings.length} results`}
-          </div>
+          <Link
+            href="/submit"
+            className="inline-block mt-3 bg-cyan-400 text-black px-4 py-2 rounded-lg text-sm"
+          >
+            Submit Listing
+          </Link>
         </div>
 
-        {activeView === 'Home' && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <input
-                type="text"
-                placeholder="Search events..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="mb-5 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white placeholder:text-white/35 outline-none focus:border-cyan-400"
-              />
+        <input
+          type="text"
+          placeholder="Search..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm"
+        />
 
-              <div className="mb-4">
-                <p className="mb-2 text-sm text-white/70">Island</p>
-                <div className="flex flex-wrap gap-2">
-                  {islands.map((island) => (
-                    <button
-                      key={island}
-                      onClick={() => setSelectedIsland(island)}
-                      className={`rounded-full px-4 py-2 text-sm transition ${
-                        selectedIsland === island
-                          ? 'bg-cyan-400 text-slate-950'
-                          : 'bg-white/5 text-white/80 hover:bg-white/10'
-                      }`}
-                    >
-                      {island}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-2 text-sm text-white/70">Category</p>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`rounded-full px-4 py-2 text-sm transition ${
-                        selectedCategory === category
-                          ? 'bg-cyan-400 text-slate-950'
-                          : 'bg-white/5 text-white/80 hover:bg-white/10'
-                      }`}
-                    >
-                      {category}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {featured.length > 0 && (
-              <>
-                <h2 className="text-xl font-semibold mb-3">Featured</h2>
-                {renderCards(featured)}
-              </>
-            )}
-
-            <h2 className="text-xl font-semibold mt-6 mb-3">All Events</h2>
-            {renderCards(regular)}
-          </div>
-        )}
-
-        {activeView === 'Search' && (
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <h2 className="text-2xl font-bold">Search</h2>
-              <p className="mt-2 text-white/65">Search is using the same live listings.</p>
-            </div>
-
-            {featured.length > 0 && (
-              <>
-                <h2 className="text-xl font-semibold mb-3">Featured</h2>
-                {renderCards(featured)}
-              </>
-            )}
-
-            <h2 className="text-xl font-semibold mt-6 mb-3">All Events</h2>
-            {renderCards(regular)}
-          </div>
-        )}
-
-        {activeView === 'Map' && (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
-            <h2 className="text-2xl font-bold">Map</h2>
-            <p className="mt-2 text-white/65">Map view not built yet.</p>
-          </div>
-        )}
-
-        {activeView === 'Saved' && (
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <h2 className="text-2xl font-bold">Saved</h2>
-              <p className="mt-2 text-white/65">Saved items appear here.</p>
-            </div>
-            {renderCards(savedListings)}
-          </div>
-        )}
-      </div>
-
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-slate-950/95 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center justify-around px-2 py-3">
-          {views.map((view) => (
+        <div className="flex gap-2 flex-wrap">
+          {islands.map((i) => (
             <button
-              key={view}
-              type="button"
-              onClick={() => setActiveView(view)}
-              className={`rounded-xl px-4 py-2 text-sm ${
-                activeView === view
-                  ? 'bg-cyan-400 text-slate-950'
-                  : 'text-white/65 hover:bg-white/5 hover:text-white'
+              key={i}
+              onClick={() => setSelectedIsland(i)}
+              className={`px-3 py-1 rounded-full text-sm ${
+                selectedIsland === i
+                  ? 'bg-cyan-400 text-black'
+                  : 'bg-white/5 text-white/70'
               }`}
             >
-              {view}
+              {i}
             </button>
           ))}
         </div>
+
+        {renderCards(filteredListings)}
+      </div>
+
+      {/* BOTTOM NAV */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-slate-950 border-t border-white/10 flex justify-around py-3 text-sm">
+        {views.map((v) => (
+          <button
+            key={v}
+            onClick={() => setActiveView(v)}
+            className={activeView === v ? 'text-cyan-400' : 'text-white/50'}
+          >
+            {v}
+          </button>
+        ))}
       </nav>
     </main>
   );
