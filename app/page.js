@@ -91,21 +91,36 @@ function formatEventDate(value) {
   return `${weekday} ${month} ${day} ${hours}${ampm}`;
 }
 
+function FilterPill({ active, children, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+        active
+          ? 'border-cyan-300 bg-cyan-300 text-slate-950 shadow-md'
+          : 'border-white/10 bg-white/8 text-white/85 hover:bg-white/12'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 function ListingCard({ item, onOpen }) {
   const featured = !!item.is_featured;
   const image = getImage(item);
 
   return (
     <div
-      className={`overflow-hidden rounded-3xl border ${
+      className={`overflow-hidden rounded-[28px] border backdrop-blur-sm transition ${
         featured
-          ? 'border-yellow-400 bg-slate-900 shadow-lg'
-          : 'border-white/10 bg-slate-900/90'
+          ? 'border-yellow-400/80 bg-slate-900/85 shadow-[0_0_28px_rgba(250,204,21,0.16)]'
+          : 'border-white/10 bg-slate-900/80 shadow-xl'
       }`}
     >
-      <div className="relative h-48 bg-slate-800">
+      <div className="relative h-52 bg-slate-800">
         {featured && (
-          <div className="absolute left-3 top-3 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-bold text-black">
+          <div className="absolute left-3 top-3 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-extrabold text-black shadow-md">
             FEATURED
           </div>
         )}
@@ -122,7 +137,7 @@ function ListingCard({ item, onOpen }) {
           </div>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
       </div>
 
       <div className="space-y-3 p-4">
@@ -146,7 +161,7 @@ function ListingCard({ item, onOpen }) {
 
         <button
           onClick={() => onOpen(item)}
-          className="w-full rounded-2xl bg-cyan-300 py-3 text-base font-semibold text-slate-950 transition active:scale-95"
+          className="w-full rounded-2xl bg-cyan-300 py-3 text-base font-semibold text-slate-950 shadow-[0_0_18px_rgba(103,232,249,0.18)] transition hover:bg-cyan-200 active:scale-95"
         >
           Open
         </button>
@@ -159,9 +174,9 @@ function FeaturedMiniCard({ item, onOpen }) {
   const image = getImage(item);
 
   return (
-    <div className="w-[280px] shrink-0 snap-start overflow-hidden rounded-3xl border border-yellow-400 bg-slate-900 shadow-lg">
-      <div className="relative h-40 bg-slate-800">
-        <div className="absolute left-3 top-3 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-bold text-black">
+    <div className="w-[290px] shrink-0 snap-start overflow-hidden rounded-[30px] border border-yellow-400/80 bg-slate-900/90 shadow-[0_0_34px_rgba(250,204,21,0.18)]">
+      <div className="relative h-44 bg-slate-800">
+        <div className="absolute left-3 top-3 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-extrabold text-black shadow-md">
           FEATURED
         </div>
 
@@ -177,11 +192,11 @@ function FeaturedMiniCard({ item, onOpen }) {
           </div>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
       </div>
 
       <div className="space-y-3 p-4">
-        <h3 className="line-clamp-1 text-lg font-semibold text-white">
+        <h3 className="line-clamp-1 text-[1.15rem] font-semibold text-white">
           {getTitle(item)}
         </h3>
 
@@ -194,27 +209,12 @@ function FeaturedMiniCard({ item, onOpen }) {
 
         <button
           onClick={() => onOpen(item)}
-          className="w-full rounded-2xl bg-cyan-300 py-3 text-base font-semibold text-slate-950 transition active:scale-95"
+          className="w-full rounded-2xl bg-cyan-300 py-3 text-base font-semibold text-slate-950 shadow-[0_0_18px_rgba(103,232,249,0.18)] transition hover:bg-cyan-200 active:scale-95"
         >
           Open
         </button>
       </div>
     </div>
-  );
-}
-
-function FilterPill({ active, children, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`rounded-full px-4 py-2 text-sm transition ${
-        active
-          ? 'bg-cyan-300 text-slate-950'
-          : 'bg-slate-800 text-white/80'
-      }`}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -299,14 +299,14 @@ export default function Page() {
   const regularListings = filteredListings.filter((item) => !item.is_featured);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-950 to-slate-950 pb-24 text-white">
-      <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
-        <div className="space-y-4 text-center">
+    <main className="min-h-screen pb-24 text-white">
+      <div className="mx-auto max-w-6xl px-4 py-8 space-y-7">
+        <div className="space-y-5 text-center">
           <div>
             <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl">
               869 To Do
             </h1>
-            <p className="mt-2 text-sm text-white/70 sm:text-base">
+            <p className="mt-2 text-sm text-white/72 sm:text-base">
               What&apos;s happening in St. Kitts &amp; Nevis
             </p>
           </div>
@@ -314,7 +314,7 @@ export default function Page() {
           <div>
             <Link
               href="/submit"
-              className="inline-block rounded-2xl bg-amber-300 px-6 py-3 text-base font-semibold text-slate-950"
+              className="inline-block rounded-[22px] bg-gradient-to-r from-amber-300 to-yellow-400 px-7 py-3 text-base font-semibold text-slate-950 shadow-[0_0_24px_rgba(250,204,21,0.20)]"
             >
               Submit Listing
             </Link>
@@ -327,7 +327,7 @@ export default function Page() {
             placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-3xl border border-white/10 bg-slate-900/80 px-5 py-4 text-base text-white outline-none placeholder:text-white/40"
+            className="w-full rounded-[30px] border border-white/15 bg-slate-900/65 px-5 py-4 text-base text-white shadow-[0_0_18px_rgba(255,255,255,0.04)] outline-none backdrop-blur-sm placeholder:text-white/42"
           />
         </div>
 
@@ -361,14 +361,14 @@ export default function Page() {
           <section className="space-y-3 pt-4">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-2xl font-semibold text-amber-200">
-                🔥 Tonight in St. Kitts &amp; Nevis
+                ✨ Featured in St. Kitts &amp; Nevis
               </h2>
               <span className="text-sm text-amber-100/75">
                 {featuredListings.length} featured
               </span>
             </div>
 
-            <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
+            <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               {featuredListings.map((item) => (
                 <FeaturedMiniCard
                   key={item.id}
@@ -391,9 +391,13 @@ export default function Page() {
           </div>
 
           {loading ? (
-            <div className="py-10 text-center text-white/60">Loading...</div>
+            <div className="rounded-3xl border border-white/10 bg-slate-900/60 py-10 text-center text-white/60">
+              Loading...
+            </div>
           ) : regularListings.length === 0 ? (
-            <div className="py-10 text-center text-white/60">No listings found</div>
+            <div className="rounded-3xl border border-white/10 bg-slate-900/60 py-10 text-center text-white/60">
+              No listings found
+            </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {regularListings.map((item) => (
@@ -410,11 +414,11 @@ export default function Page() {
 
       {openItem && (
         <div
-          className="fixed inset-0 z-50 flex items-end bg-black/70"
+          className="fixed inset-0 z-50 flex items-end bg-black/72"
           onClick={() => setOpenItem(null)}
         >
           <div
-            className="max-h-[85vh] w-full overflow-y-auto rounded-t-3xl bg-slate-900 p-5"
+            className="max-h-[85vh] w-full overflow-y-auto rounded-t-[30px] bg-slate-900 p-5 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/20" />
