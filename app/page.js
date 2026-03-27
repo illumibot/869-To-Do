@@ -278,22 +278,39 @@ export default function Page() {
           className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm"
         />
 
-        <div className="flex gap-2 flex-wrap">
-          {islands.map((i) => (
-            <button
-              key={i}
-              onClick={() => setSelectedIsland(i)}
-              className={`px-3 py-1 rounded-full text-sm ${
-                selectedIsland === i
-                  ? 'bg-cyan-400 text-black'
-                  : 'bg-white/5 text-white/70'
-              }`}
-            >
-              {i}
-            </button>
-          ))}
-        </div>
+      <div className="space-y-3">
+  <div className="flex gap-2 flex-wrap">
+    {islands.map((i) => (
+      <button
+        key={i}
+        onClick={() => setSelectedIsland(i)}
+        className={`px-3 py-1 rounded-full text-sm ${
+          selectedIsland === i
+            ? 'bg-cyan-400 text-black'
+            : 'bg-white/5 text-white/70'
+        }`}
+      >
+        {i}
+      </button>
+    ))}
+  </div>
 
+  <div className="flex gap-2 flex-wrap">
+    {categories.map((c) => (
+      <button
+        key={c}
+        onClick={() => setSelectedCategory(c)}
+        className={`px-3 py-1 rounded-full text-sm ${
+          selectedCategory === c
+            ? 'bg-cyan-400 text-black'
+            : 'bg-white/5 text-white/70'
+        }`}
+      >
+        {c}
+      </button>
+    ))}
+  </div>
+</div>
         {renderCards(filteredListings)}
       </div>
 
