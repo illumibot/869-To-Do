@@ -11,24 +11,167 @@ function normalizeIsland(value) {
     .toLowerCase()
     .replace(/\./g, '')
     .replace(/saint/g, 'st')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
-function getIsland(item) {
-  const raw = normalizeIsland(item.island || '');
-  if (raw.includes('nevis')) return 'Nevis';
-  if (raw.includes('kitts')) return 'St. Kitts';
-  return 'Other';
+function getTitle(item) {
+  return item.title || item.name || item.event_name || 'Untitled Listing';
 }
 
-function formatPrice(v) {
-  const n = Number(v);
+function getCategory(item) {
+  return item.category || item.type || item.event_type || 'General';
+}
+
+function getIsland(item) {
+  const raw = normalizeIsland(
+    item.island || item.location_island || item.region || ''
+  );
+
+  if (raw.includes('nevis')) return 'Nevis';
+  if (raw.includes('kitts')) return 'St. Kitts';
+
+  return item.island || item.location_island || item.region || 'Other';
+}
+
+function getLocation(item) {
+  return (
+    item.location ||
+    item.venue_name ||
+    item.venue ||
+    item.place ||
+    item.address ||
+    'Location TBA'
+  );
+}
+
+function getDescription(item) {
+  return item.description || 'No description available.';
+}
+
+function getImage(item) {
+  return item.image_url || item.image || item.photo_url || item.cover_image || '';
+}
+
+function getPrice(item) {
+  return item.price ?? item.cost ?? item.ticket_price ?? 0;
+}
+
+function getDate(item) {
+  return (
+    item.start_time ||
+    item.date ||
+    item.event_date ||
+    item.starts_at ||
+    item.start_date ||
+    ''
+  );
+}
+
+function formatPrice(value) {
+  const n = Number(value);
   if (!n) return 'Free';
-  return `EC$${n}`;
+  return `EC$${n.toFixed(0)}`;
+}
+
+function formatEventDate(value) {
+  if (!value) return 'Date TBA';
+
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+
+  const weekday = d.toLocaleDateString(undefined, { weekday: 'short' });
+  const month = d.toLocaleDateString(undefined, { month: 'short' });
+  const day = String(d.getDate()).padStart(2, '0');
+
+  let hours = d.getHours();
+  const ampm = hours >= 12 ? 'pm' : 'am';
+  hours = hours % 12 || 12;
+
+  return `${weekday} ${month} ${day} ${hours}${ampm}`;
+}
+
+function ListingCard({ item, onOpen, onImageOpen, compact = false }) {
+  const featured = !!item.is_featured;
+
+  return (
+    <div
+      className={`rounded-2xl overflow-hidden transition ${
+        featured
+          ? 'bg-yellow-400/10 border-2 border-yellow-400 shadow-[0_0_25px_rgba(250,204,21,0.22)]'
+          : 'bg-white/5 border border-white/10'
+      }`}
+    >
+      <div
+        className={`relative bg-black/20 cursor-pointer ${
+          compact ? 'h-32' : 'h-44'
+        }`}
+        onClick={() => {
+          const image = getImage(item);
+          if (image) onImageOpen(image);
+        }}
+      >
+        {featured && (
+          <div className="absolute left-2 top-2 z-10 rounded bg-yellow-400 px-2 py-1 text-[11px] font-bold text-black">
+            FEATURED
+          </div>
+        )}
+
+        {getImage(item) ? (
+          <img
+            src={getImage(item)}
+            alt={getTitle(item)}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-white/30">
+            No image
+          </div>
+        )}
+      </div>
+
+      <div className={`${compact ? 'p-3 space-y-2' : 'p-4 space-y-3'}`}>
+        <div className="flex items-center justify-between gap-2 text-xs text-white/60">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span>{getCategory(item)}</span>
+            {featured && (
+              <span className="rounded-full bg-yellow-400 px-2 py-1 text-[11px] font-semibold text-black">
+                Featured
+              </span>
+            )}
+          </div>
+          <span>{getIsland(item)}</span>
+        </div>
+
+        <h3 className={`${compact ? 'text-base' : 'text-lg'} font-semibold leading-tight text-white`}>
+          {getTitle(item)}
+        </h3>
+
+        <p className="text-sm text-white/60">{getLocation(item)}</p>
+
+        <div className="flex items-start justify-between gap-3 text-sm">
+          <span className="text-white/80">{formatEventDate(getDate(item))}</span>
+          <span className="shrink-0 font-semibold text-white">
+            {formatPrice(getPrice(item))}
+          </span>
+        </div>
+
+        <button
+          onClick={() => onOpen(item)}
+          className={`w-full rounded-lg bg-cyan-400 font-medium text-black transition active:scale-95 ${
+            compact ? 'py-2 text-sm' : 'py-2.5 text-sm'
+          }`}
+        >
+          Open
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function Page() {
   const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedIsland, setSelectedIsland] = useState('All');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [search, setSearch] = useState('');
@@ -36,186 +179,257 @@ export default function Page() {
   const [imageView, setImageView] = useState(null);
 
   useEffect(() => {
-    async function load() {
-      const { data } = await supabase.from('listings').select('*');
-      setListings(data || []);
+    async function loadListings() {
+      setLoading(true);
+
+      const now = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('listings')
+        .select('*')
+        .or(`end_time.is.null,end_time.gte.${now}`)
+        .order('is_featured', { ascending: false })
+        .order('start_time', { ascending: true });
+
+      if (error) {
+        console.error('Error loading listings:', error);
+        setListings([]);
+      } else {
+        setListings(data || []);
+      }
+
+      setLoading(false);
     }
-    load();
+
+    loadListings();
   }, []);
 
   const categories = useMemo(() => {
     const set = new Set();
-    listings.forEach((l) => set.add(l.category || 'General'));
+    listings.forEach((item) => set.add(getCategory(item)));
     return ['All', ...Array.from(set)];
   }, [listings]);
 
-  const filtered = useMemo(() => {
-    return listings.filter((l) => {
+  const filteredListings = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    return listings.filter((item) => {
       const islandOk =
         selectedIsland === 'All' ||
-        normalizeIsland(getIsland(l)).includes(normalizeIsland(selectedIsland));
+        normalizeIsland(getIsland(item)).includes(normalizeIsland(selectedIsland));
 
       const categoryOk =
-        selectedCategory === 'All' ||
-        (l.category || 'General') === selectedCategory;
+        selectedCategory === 'All' || getCategory(item) === selectedCategory;
 
       const searchOk =
-        !search ||
-        (l.title || '').toLowerCase().includes(search.toLowerCase());
+        !q ||
+        getTitle(item).toLowerCase().includes(q) ||
+        getLocation(item).toLowerCase().includes(q) ||
+        getDescription(item).toLowerCase().includes(q) ||
+        getCategory(item).toLowerCase().includes(q) ||
+        getIsland(item).toLowerCase().includes(q);
 
       return islandOk && categoryOk && searchOk;
     });
   }, [listings, selectedIsland, selectedCategory, search]);
 
-  const featured = filtered.filter((l) => l.is_featured);
-  const regular = filtered.filter((l) => !l.is_featured);
-
-  function Card(item) {
-    return (
-      <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
-        <div
-          className="h-44 bg-black/20 cursor-pointer"
-          onClick={() => setImageView(item.image_url)}
-        >
-          {item.image_url ? (
-            <img src={item.image_url} className="w-full h-full object-cover" />
-          ) : (
-            <div className="flex h-full items-center justify-center text-white/30">
-              No image
-            </div>
-          )}
-        </div>
-
-        <div className="p-4 space-y-2">
-          <div className="flex justify-between text-xs text-white/60">
-            <span>{item.category}</span>
-            <span>{getIsland(item)}</span>
-          </div>
-
-          <h3 className="font-semibold">{item.title}</h3>
-          <p className="text-sm text-white/60">{item.location}</p>
-
-          <div className="flex justify-between text-sm">
-            <span>{item.start_time}</span>
-            <span>{formatPrice(item.price)}</span>
-          </div>
-
-          <button
-            onClick={() => setOpenItem(item)}
-            className="w-full bg-cyan-400 text-black py-2 rounded-lg mt-2"
-          >
-            Open
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const featuredListings = filteredListings.filter((item) => item.is_featured);
+  const regularListings = filteredListings.filter((item) => !item.is_featured);
 
   return (
-    <main className="bg-slate-950 min-h-screen text-white pb-24">
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <main className="min-h-screen bg-slate-950 pb-24 text-white">
+      <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
+        <div className="space-y-3">
+          <div>
+            <h1 className="text-2xl font-bold">869 To Do</h1>
+          </div>
 
-        <h1 className="text-2xl font-bold">869 To Do</h1>
-
-        <Link
-          href="/submit"
-          className="inline-block bg-cyan-400 text-black px-4 py-2 rounded-lg"
-        >
-          Submit Listing
-        </Link>
+          <Link
+            href="/submit"
+            className="inline-block rounded-lg bg-cyan-400 px-4 py-2 text-sm text-black"
+          >
+            Submit Listing
+          </Link>
+        </div>
 
         <input
+          type="text"
           placeholder="Search..."
-          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3"
+          value={search}
           onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-white/35"
         />
 
-        {/* FILTERS */}
-        <div className="space-y-2">
-          <div className="flex gap-2 flex-wrap">
-            {islands.map((i) => (
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {islands.map((island) => (
               <button
-                key={i}
-                onClick={() => setSelectedIsland(i)}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  selectedIsland === i
+                key={island}
+                onClick={() => setSelectedIsland(island)}
+                className={`rounded-full px-3 py-1 text-sm ${
+                  selectedIsland === island
                     ? 'bg-cyan-400 text-black'
                     : 'bg-white/5 text-white/70'
                 }`}
               >
-                {i}
+                {island}
               </button>
             ))}
           </div>
 
-          <div className="flex gap-2 flex-wrap">
-            {categories.map((c) => (
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
               <button
-                key={c}
-                onClick={() => setSelectedCategory(c)}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  selectedCategory === c
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`rounded-full px-3 py-1 text-sm ${
+                  selectedCategory === category
                     ? 'bg-cyan-400 text-black'
                     : 'bg-white/5 text-white/70'
                 }`}
               >
-                {c}
+                {category}
               </button>
             ))}
           </div>
         </div>
 
-        {/* FEATURED */}
-        {featured.length > 0 && (
-          <>
-            <h2 className="text-lg font-semibold">Featured</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {featured.map((item) => (
-                <Card key={item.id} {...item} />
+        {featuredListings.length > 0 && (
+          <section className="sticky top-0 z-30 -mx-4 border-b border-yellow-400/20 bg-slate-950/95 px-4 pb-4 pt-2 backdrop-blur">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="text-lg font-semibold text-yellow-300">Featured</h2>
+              <span className="text-xs text-yellow-200/70">
+                {featuredListings.length} featured
+              </span>
+            </div>
+
+            <div className="flex gap-4 overflow-x-auto pb-1">
+              {featuredListings.map((item) => (
+                <div key={item.id} className="min-w-[280px] max-w-[280px] shrink-0">
+                  <ListingCard
+                    item={item}
+                    compact
+                    onOpen={setOpenItem}
+                    onImageOpen={setImageView}
+                  />
+                </div>
               ))}
             </div>
-          </>
+          </section>
         )}
 
-        {/* ALL */}
-        <h2 className="text-lg font-semibold">All Events</h2>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {regular.map((item) => (
-            <Card key={item.id} {...item} />
-          ))}
-        </div>
+        <section className="space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold">All Listings</h2>
+            {!loading && (
+              <span className="text-sm text-white/50">
+                {regularListings.length} results
+              </span>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="py-10 text-center text-white/60">Loading...</div>
+          ) : regularListings.length === 0 ? (
+            <div className="py-10 text-center text-white/60">No listings found</div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {regularListings.map((item) => (
+                <ListingCard
+                  key={item.id}
+                  item={item}
+                  onOpen={setOpenItem}
+                  onImageOpen={setImageView}
+                />
+              ))}
+            </div>
+          )}
+        </section>
       </div>
 
-      {/* BOTTOM SHEET */}
       {openItem && (
         <div
-          className="fixed inset-0 bg-black/70 flex items-end"
+          className="fixed inset-0 z-50 flex items-end bg-black/70"
           onClick={() => setOpenItem(null)}
         >
           <div
-            className="bg-slate-900 w-full p-5 rounded-t-2xl space-y-3"
+            className="max-h-[85vh] w-full overflow-y-auto rounded-t-2xl bg-slate-900 p-5"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-xl font-bold">{openItem.title}</h2>
-            <p>{openItem.description}</p>
-            <p className="text-sm text-white/60">{openItem.location}</p>
-            <button
-              className="w-full bg-cyan-400 text-black py-3 rounded-lg"
-              onClick={() => setOpenItem(null)}
-            >
-              Close
-            </button>
+            <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/20" />
+
+            <div className="space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-bold">{getTitle(openItem)}</h2>
+                  <p className="mt-1 text-sm text-white/60">
+                    {getCategory(openItem)} • {getIsland(openItem)}
+                  </p>
+                </div>
+
+                {openItem.is_featured && (
+                  <span className="rounded-full bg-yellow-400 px-3 py-1 text-xs font-bold text-black">
+                    FEATURED
+                  </span>
+                )}
+              </div>
+
+              {getImage(openItem) && (
+                <img
+                  src={getImage(openItem)}
+                  alt={getTitle(openItem)}
+                  className="h-52 w-full rounded-xl object-cover"
+                  onClick={() => setImageView(getImage(openItem))}
+                />
+              )}
+
+              <div className="grid gap-3 rounded-xl border border-white/10 bg-white/5 p-4 text-sm sm:grid-cols-2">
+                <div>
+                  <p className="text-white/45">Date</p>
+                  <p className="mt-1 text-white">{formatEventDate(getDate(openItem))}</p>
+                </div>
+                <div>
+                  <p className="text-white/45">Price</p>
+                  <p className="mt-1 text-white">{formatPrice(getPrice(openItem))}</p>
+                </div>
+                <div>
+                  <p className="text-white/45">Location</p>
+                  <p className="mt-1 text-white">{getLocation(openItem)}</p>
+                </div>
+                <div>
+                  <p className="text-white/45">Category</p>
+                  <p className="mt-1 text-white">{getCategory(openItem)}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-white/45">Description</p>
+                <p className="mt-2 text-sm leading-relaxed text-white/80">
+                  {getDescription(openItem)}
+                </p>
+              </div>
+
+              <button
+                className="w-full rounded-lg bg-cyan-400 py-3 font-medium text-black"
+                onClick={() => setOpenItem(null)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* IMAGE VIEW */}
       {imageView && (
         <div
-          className="fixed inset-0 bg-black flex items-center justify-center"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black"
           onClick={() => setImageView(null)}
         >
-          <img src={imageView} className="max-h-full max-w-full" />
+          <img
+            src={imageView}
+            alt="Listing"
+            className="max-h-full max-w-full object-contain"
+          />
         </div>
       )}
     </main>
