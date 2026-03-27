@@ -93,25 +93,26 @@ function formatEventDate(value) {
 
 function ListingCard({ item, onOpen }) {
   const featured = !!item.is_featured;
+  const image = getImage(item);
 
   return (
     <div
-      className={`rounded-2xl overflow-hidden transition ${
+      className={`overflow-hidden rounded-3xl border ${
         featured
-          ? 'border-2 border-yellow-400 bg-yellow-400/10 shadow-[0_0_25px_rgba(250,204,21,0.22)]'
-          : 'border border-white/10 bg-white/5'
+          ? 'border-yellow-400 bg-slate-900 shadow-lg'
+          : 'border-white/10 bg-slate-900/90'
       }`}
     >
-      <div className="relative h-44 bg-black/20">
+      <div className="relative h-48 bg-slate-800">
         {featured && (
-          <div className="absolute left-2 top-2 z-10 rounded bg-yellow-400 px-2 py-1 text-[11px] font-bold text-black">
+          <div className="absolute left-3 top-3 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-bold text-black">
             FEATURED
           </div>
         )}
 
-        {getImage(item) ? (
+        {image ? (
           <img
-            src={getImage(item)}
+            src={image}
             alt={getTitle(item)}
             className="h-full w-full object-cover"
           />
@@ -120,26 +121,21 @@ function ListingCard({ item, onOpen }) {
             No image
           </div>
         )}
+
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
       </div>
 
       <div className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-2 text-xs text-white/60">
-          <div className="flex flex-wrap items-center gap-2">
-            <span>{getCategory(item)}</span>
-            {featured && (
-              <span className="rounded-full bg-yellow-400 px-2 py-1 text-[11px] font-semibold text-black">
-                Featured
-              </span>
-            )}
-          </div>
+          <span>{getCategory(item)}</span>
           <span>{getIsland(item)}</span>
         </div>
 
-        <h3 className="text-lg font-semibold leading-tight text-white">
+        <h3 className="text-xl font-semibold leading-tight text-white">
           {getTitle(item)}
         </h3>
 
-        <p className="text-sm text-white/60">{getLocation(item)}</p>
+        <p className="text-sm text-white/65">{getLocation(item)}</p>
 
         <div className="flex items-start justify-between gap-3 text-sm">
           <span className="text-white/80">{formatEventDate(getDate(item))}</span>
@@ -150,7 +146,7 @@ function ListingCard({ item, onOpen }) {
 
         <button
           onClick={() => onOpen(item)}
-          className="w-full rounded-lg bg-cyan-400 py-2.5 text-sm font-medium text-black transition active:scale-95"
+          className="w-full rounded-2xl bg-cyan-300 py-3 text-base font-semibold text-slate-950 transition active:scale-95"
         >
           Open
         </button>
@@ -160,16 +156,18 @@ function ListingCard({ item, onOpen }) {
 }
 
 function FeaturedMiniCard({ item, onOpen }) {
+  const image = getImage(item);
+
   return (
-    <div className="w-[230px] shrink-0 snap-start overflow-hidden rounded-2xl border border-yellow-400 bg-yellow-400/10 shadow-[0_0_18px_rgba(250,204,21,0.18)]">
-      <div className="relative h-24 bg-black/20">
-        <div className="absolute left-2 top-2 z-10 rounded bg-yellow-400 px-2 py-1 text-[10px] font-bold text-black">
+    <div className="w-[280px] shrink-0 snap-start overflow-hidden rounded-3xl border border-yellow-400 bg-slate-900 shadow-lg">
+      <div className="relative h-40 bg-slate-800">
+        <div className="absolute left-3 top-3 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-bold text-black">
           FEATURED
         </div>
 
-        {getImage(item) ? (
+        {image ? (
           <img
-            src={getImage(item)}
+            src={image}
             alt={getTitle(item)}
             className="h-full w-full object-cover"
           />
@@ -178,14 +176,16 @@ function FeaturedMiniCard({ item, onOpen }) {
             No image
           </div>
         )}
+
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
       </div>
 
-      <div className="space-y-1.5 p-2.5">
-        <h3 className="line-clamp-1 text-sm font-semibold text-white">
+      <div className="space-y-3 p-4">
+        <h3 className="line-clamp-1 text-lg font-semibold text-white">
           {getTitle(item)}
         </h3>
 
-        <div className="flex items-center justify-between gap-2 text-[11px] text-white/70">
+        <div className="flex items-center justify-between gap-3 text-sm text-white/75">
           <span className="truncate">{formatEventDate(getDate(item))}</span>
           <span className="shrink-0 font-semibold text-white">
             {formatPrice(getPrice(item))}
@@ -194,12 +194,27 @@ function FeaturedMiniCard({ item, onOpen }) {
 
         <button
           onClick={() => onOpen(item)}
-          className="w-full rounded-lg bg-cyan-400 py-2 text-xs font-medium text-black transition active:scale-95"
+          className="w-full rounded-2xl bg-cyan-300 py-3 text-base font-semibold text-slate-950 transition active:scale-95"
         >
           Open
         </button>
       </div>
     </div>
+  );
+}
+
+function FilterPill({ active, children, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-full px-4 py-2 text-sm transition ${
+        active
+          ? 'bg-cyan-300 text-slate-950'
+          : 'bg-slate-800 text-white/80'
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -240,7 +255,14 @@ export default function Page() {
 
   const categories = useMemo(() => {
     const set = new Set();
-    listings.forEach((item) => set.add(getCategory(item)));
+
+    listings.forEach((item) => {
+      const category = getCategory(item);
+      if (String(category).trim().toLowerCase() !== 'specials') {
+        set.add(category);
+      }
+    });
+
     return ['All', ...Array.from(set)];
   }, [listings]);
 
@@ -248,19 +270,25 @@ export default function Page() {
     const q = search.trim().toLowerCase();
 
     return listings.filter((item) => {
+      const itemCategory = getCategory(item);
+
+      if (String(itemCategory).trim().toLowerCase() === 'specials') {
+        return false;
+      }
+
       const islandOk =
         selectedIsland === 'All' ||
         normalizeIsland(getIsland(item)).includes(normalizeIsland(selectedIsland));
 
       const categoryOk =
-        selectedCategory === 'All' || getCategory(item) === selectedCategory;
+        selectedCategory === 'All' || itemCategory === selectedCategory;
 
       const searchOk =
         !q ||
         getTitle(item).toLowerCase().includes(q) ||
         getLocation(item).toLowerCase().includes(q) ||
         getDescription(item).toLowerCase().includes(q) ||
-        getCategory(item).toLowerCase().includes(q) ||
+        itemCategory.toLowerCase().includes(q) ||
         getIsland(item).toLowerCase().includes(q);
 
       return islandOk && categoryOk && searchOk;
@@ -271,75 +299,76 @@ export default function Page() {
   const regularListings = filteredListings.filter((item) => !item.is_featured);
 
   return (
-    <main className="min-h-screen bg-slate-950 pb-24 text-white">
+    <main className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-950 to-slate-950 pb-24 text-white">
       <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
-        <div className="space-y-3">
+        <div className="space-y-4 text-center">
           <div>
-        <h1 className="text-[2.6rem] font-bold leading-none tracking-tight text-red-500 sm:text-6xl">
-  869 To Do TEST
-</h1>
+            <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl">
+              869 To Do
+            </h1>
+            <p className="mt-2 text-sm text-white/70 sm:text-base">
+              What&apos;s happening in St. Kitts &amp; Nevis
+            </p>
           </div>
 
-          <Link
-            href="/submit"
-            className="inline-block rounded-lg bg-cyan-400 px-4 py-2 text-sm text-black"
-          >
-            Submit Listing
-          </Link>
+          <div>
+            <Link
+              href="/submit"
+              className="inline-block rounded-2xl bg-amber-300 px-6 py-3 text-base font-semibold text-slate-950"
+            >
+              Submit Listing
+            </Link>
+          </div>
         </div>
 
-        <input
-          type="text"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-white/35"
-        />
+        <div>
+          <input
+            type="text"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-3xl border border-white/10 bg-slate-900/80 px-5 py-4 text-base text-white outline-none placeholder:text-white/40"
+          />
+        </div>
 
         <div className="space-y-3">
           <div className="flex flex-wrap gap-2">
             {islands.map((island) => (
-              <button
+              <FilterPill
                 key={island}
+                active={selectedIsland === island}
                 onClick={() => setSelectedIsland(island)}
-                className={`rounded-full px-3 py-1 text-sm ${
-                  selectedIsland === island
-                    ? 'bg-cyan-400 text-black'
-                    : 'bg-white/5 text-white/70'
-                }`}
               >
                 {island}
-              </button>
+              </FilterPill>
             ))}
           </div>
 
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
-              <button
+              <FilterPill
                 key={category}
+                active={selectedCategory === category}
                 onClick={() => setSelectedCategory(category)}
-                className={`rounded-full px-3 py-1 text-sm ${
-                  selectedCategory === category
-                    ? 'bg-cyan-400 text-black'
-                    : 'bg-white/5 text-white/70'
-                }`}
               >
                 {category}
-              </button>
+              </FilterPill>
             ))}
           </div>
         </div>
 
         {featuredListings.length > 0 && (
-          <section className="sticky top-0 z-30 -mx-4 border-b border-yellow-400/20 bg-slate-950/95 px-4 pb-2 pt-2 backdrop-blur">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <h2 className="text-base font-semibold text-yellow-300">Featured</h2>
-              <span className="text-xs text-yellow-200/70">
+          <section className="space-y-3 pt-4">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-2xl font-semibold text-amber-200">
+                🔥 Tonight in St. Kitts &amp; Nevis
+              </h2>
+              <span className="text-sm text-amber-100/75">
                 {featuredListings.length} featured
               </span>
             </div>
 
-            <div className="snap-x snap-mandatory flex gap-3 overflow-x-auto pb-1 pr-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
               {featuredListings.map((item) => (
                 <FeaturedMiniCard
                   key={item.id}
@@ -351,11 +380,11 @@ export default function Page() {
           </section>
         )}
 
-        <section className="space-y-4">
+        <section className="space-y-4 pt-4">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold">All Listings</h2>
+            <h2 className="text-2xl font-semibold text-white">More to Do</h2>
             {!loading && (
-              <span className="text-sm text-white/50">
+              <span className="text-sm text-white/55">
                 {regularListings.length} results
               </span>
             )}
@@ -385,7 +414,7 @@ export default function Page() {
           onClick={() => setOpenItem(null)}
         >
           <div
-            className="max-h-[85vh] w-full overflow-y-auto rounded-t-2xl bg-slate-900 p-5"
+            className="max-h-[85vh] w-full overflow-y-auto rounded-t-3xl bg-slate-900 p-5"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/20" />
@@ -410,15 +439,17 @@ export default function Page() {
                 <img
                   src={getImage(openItem)}
                   alt={getTitle(openItem)}
-                  className="h-52 w-full cursor-pointer rounded-xl object-cover"
+                  className="h-56 w-full cursor-pointer rounded-2xl object-cover"
                   onClick={() => setImageView(getImage(openItem))}
                 />
               )}
 
-              <div className="grid gap-3 rounded-xl border border-white/10 bg-white/5 p-4 text-sm sm:grid-cols-2">
+              <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm sm:grid-cols-2">
                 <div>
                   <p className="text-white/45">Date</p>
-                  <p className="mt-1 text-white">{formatEventDate(getDate(openItem))}</p>
+                  <p className="mt-1 text-white">
+                    {formatEventDate(getDate(openItem))}
+                  </p>
                 </div>
                 <div>
                   <p className="text-white/45">Price</p>
@@ -442,7 +473,7 @@ export default function Page() {
               </div>
 
               <button
-                className="w-full rounded-lg bg-cyan-400 py-3 font-medium text-black"
+                className="w-full rounded-2xl bg-cyan-300 py-3 font-semibold text-slate-950"
                 onClick={() => setOpenItem(null)}
               >
                 Close
@@ -454,13 +485,13 @@ export default function Page() {
 
       {imageView && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black p-4"
           onClick={() => setImageView(null)}
         >
           <img
             src={imageView}
             alt="Listing"
-            className="max-h-full max-w-full object-contain"
+            className="max-h-full max-w-full rounded-2xl object-contain"
           />
         </div>
       )}
