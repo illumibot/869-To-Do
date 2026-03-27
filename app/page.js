@@ -210,6 +210,7 @@ export default function Page() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [openItem, setOpenItem] = useState(null);
+  const [imageView, setImageView] = useState(null);
 
   useEffect(() => {
     async function loadListings() {
@@ -407,7 +408,8 @@ export default function Page() {
                 <img
                   src={getImage(openItem)}
                   alt={getTitle(openItem)}
-                  className="h-52 w-full rounded-xl object-cover"
+                  className="h-52 w-full cursor-pointer rounded-xl object-cover"
+                  onClick={() => setImageView(getImage(openItem))}
                 />
               )}
 
@@ -445,6 +447,19 @@ export default function Page() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {imageView && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black"
+          onClick={() => setImageView(null)}
+        >
+          <img
+            src={imageView}
+            alt="Listing"
+            className="max-h-full max-w-full object-contain"
+          />
         </div>
       )}
     </main>
