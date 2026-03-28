@@ -31,14 +31,6 @@ body {
     background-position: 72% top;
   }
 }
-@media (max-width: 767px) {
-  body {
-    background-size: auto 100vh;
-    background-position: 72% top;
-  }
-}
-
-/* ADD THIS BELOW EVERYTHING */
 
 .snap-x {
   scroll-behavior: smooth;
@@ -46,9 +38,18 @@ body {
 }
 
 .snap-x > div > div {
-  scroll-snap-align: center;
+  scroll-snap-align: start;
 }
 
 .snap-x::-webkit-scrollbar {
   height: 8px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
