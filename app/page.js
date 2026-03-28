@@ -325,9 +325,7 @@ const categories = useMemo(() => {
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
-            <h1 className="text-xl font-bold">
-  869 To Do <span className="ml-2">🇰🇳</span>
-</h1>
+           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-md">
             <p className="mt-2 text-white/70">
               Events, live music, food, nightlife, and things happening in St. Kitts and Nevis.
             </p>
