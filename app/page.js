@@ -150,7 +150,7 @@ function TopActionButton({ href, children, primary = false }) {
   );
 }
 
-function ListingCard({ item }) {
+function ListingCard({ item, compact = false }) {
   const featured = !!item.is_featured;
   const image = getImage(item);
   const category = getCategory(item);
@@ -164,7 +164,7 @@ function ListingCard({ item }) {
           : 'border-white/10 shadow-[0_10px_24px_rgba(0,0,0,0.20)]',
       ].join(' ')}
     >
-      <div className="relative h-52 bg-slate-900">
+      <div className={`relative ${compact ? 'h-40' : 'h-52'} bg-slate-900`}>
         {featured && (
           <div className="absolute left-4 top-4 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-extrabold text-black">
             FEATURED
@@ -197,7 +197,9 @@ function ListingCard({ item }) {
           </span>
         </div>
 
-        <h3 className="text-2xl font-semibold text-white">{getTitle(item)}</h3>
+        <h3 className={`${compact ? 'text-xl' : 'text-2xl'} font-semibold text-white`}>
+          {getTitle(item)}
+        </h3>
 
         <div className="space-y-1 text-sm text-white/75">
           <p>{formatEventDate(getDate(item))}</p>
@@ -350,7 +352,7 @@ export default function Page() {
         </div>
 
         {featuredListings.length > 0 && (
-          <section className="mb-8 sticky top-0 z-10 bg-[#020617] pt-2">
+          <section className="mb-6">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">
                 Featured ({featuredListings.length})
@@ -364,7 +366,7 @@ export default function Page() {
                     key={item.id}
                     className="min-w-[85vw] max-w-[85vw] shrink-0 snap-start sm:min-w-[360px] sm:max-w-[360px]"
                   >
-                    <ListingCard item={item} />
+                    <ListingCard item={item} compact />
                   </div>
                 ))}
               </div>
