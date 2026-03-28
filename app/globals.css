@@ -19,10 +19,10 @@ body {
   background:
     linear-gradient(
       to bottom,
-      rgba(8, 20, 39, 0.10) 0%,
-      rgba(8, 20, 39, 0.38) 28%,
-      rgba(8, 20, 39, 0.68) 52%,
-      rgba(8, 20, 39, 0.88) 72%,
+      rgba(8, 20, 39, 0.08) 0%,
+      rgba(8, 20, 39, 0.34) 24%,
+      rgba(8, 20, 39, 0.62) 48%,
+      rgba(8, 20, 39, 0.84) 68%,
       #081427 100%
     ),
     url('https://cdn.jsdelivr.net/gh/illumibot/869-To-Do@main/background.png');
@@ -63,4 +63,24 @@ img {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@media (max-width: 900px) {
+  body {
+    background-attachment: scroll;
+    background-position: center top;
+    background-size: auto 1100px;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    background-attachment: scroll;
+    background-position: center top;
+    background-size: auto 980px;
+  }
+
+  .submit-btn {
+    min-width: 250px;
+  }
 }
