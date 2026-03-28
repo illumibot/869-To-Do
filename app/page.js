@@ -302,11 +302,11 @@ export default function Page() {
       className="min-h-screen text-white"
       style={{
         backgroundImage:
-          "linear-gradient(rgba(1,10,28,0.58), rgba(1,10,28,0.76)), url('/background3.png')",
+          "linear-gradient(rgba(1,10,28,0.28), rgba(1,10,28,0.48)), url('/background3.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
         backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
+        backgroundAttachment: 'scroll',
         backgroundColor: '#020b18',
       }}
     >
