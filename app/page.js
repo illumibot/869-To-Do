@@ -349,28 +349,28 @@ export default function Page() {
           </div>
         </div>
 
-        {featuredListings.length > 0 && (
-          <section className="mb-8">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">
-                Featured ({featuredListings.length})
-              </h2>
-            </div>
+       {featuredListings.length > 0 && (
+  <section className="mb-8">
+    <div className="mb-3 flex items-center justify-between">
+      <h2 className="text-xl font-bold text-white">
+        Featured ({featuredListings.length})
+      </h2>
+    </div>
 
-            <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
-              <div className="flex snap-x snap-mandatory gap-4">
-                {featuredListings.map((item) => (
-                  <div
-                    key={item.id}
-                    className="min-w-[85vw] max-w-[85vw] snap-start sm:min-w-[380px] sm:max-w-[380px]"
-                  >
-                    <ListingCard item={item} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
+    <div className="-mx-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory scroll-smooth sm:mx-0 sm:px-0">
+      <div className="flex gap-4">
+        {featuredListings.map((item) => (
+          <div
+            key={item.id}
+            className="min-w-[85vw] max-w-[85vw] shrink-0 snap-start sm:min-w-[380px] sm:max-w-[380px]"
+          >
+            <ListingCard item={item} />
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
 
         <section>
           <div className="mb-3 flex items-center justify-between">
