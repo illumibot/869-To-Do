@@ -34,6 +34,7 @@ body {
   background-color: #081427;
 }
 
+/* smoother fonts */
 body,
 input,
 button {
@@ -45,6 +46,7 @@ img {
   -webkit-user-drag: none;
 }
 
+/* button */
 .submit-btn {
   min-width: 240px;
   border-radius: 9999px;
@@ -56,6 +58,7 @@ img {
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.28);
 }
 
+/* hide scrollbars */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -65,26 +68,9 @@ img {
   scrollbar-width: none;
 }
 
-@media (max-width: 900px) {
-  body {
-    background-attachment: scroll;
-    background-position: center top;
-    background-size: auto 1100px;
-  }
-}
-
-@media (max-width: 640px) {
-  body {
-    background-attachment: scroll;
-    background-position: center top;
-    background-size: auto 980px;
-  }
-
-  .submit-btn {
-    min-width: 250px;
-  }
-}
-/* MOBILE BACKGROUND OVERRIDE */
+/* ========================= */
+/* 📱 MOBILE FIX (FINAL) */
+/* ========================= */
 @media (max-width: 640px) {
   body {
     background:
@@ -97,10 +83,14 @@ img {
       ),
       url('https://cdn.jsdelivr.net/gh/illumibot/869-To-Do@main/background.png');
 
-    background-size: auto 1100px;
+    background-repeat: no-repeat;
     background-position: center top;
+    background-size: auto 1100px;
     background-attachment: scroll;
+    background-color: #081427;
   }
-}
+
+  .submit-btn {
+    min-width: 250px;
   }
 }
