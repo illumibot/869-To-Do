@@ -31,3 +31,24 @@ body {
     background-position: 72% top;
   }
 }
+@media (max-width: 767px) {
+  body {
+    background-size: auto 100vh;
+    background-position: 72% top;
+  }
+}
+
+/* ADD THIS BELOW EVERYTHING */
+
+.snap-x {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.snap-x > div > div {
+  scroll-snap-align: center;
+}
+
+.snap-x::-webkit-scrollbar {
+  height: 8px;
+}
