@@ -337,20 +337,24 @@ export default function Page() {
             ))}
           </div>
 
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {categories.map((category) => (
-              <FilterPill
-                key={category}
-                active={activeCategory === category}
-                onClick={() => setActiveCategory(category)}
-                icon={category === 'All' ? null : categoryIcons[category] || categoryIcons.General}
-              >
-                {category}
-              </FilterPill>
-            ))}
-          </div>
-        </div>
+       <div className="flex items-center gap-2">
+  <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+    {categories.map((category) => (
+      <FilterPill
+        key={category}
+        active={activeCategory === category}
+        onClick={() => setActiveCategory(category)}
+        icon={category === 'All' ? null : categoryIcons[category] || categoryIcons.General}
+      >
+        {category}
+      </FilterPill>
+    ))}
+  </div>
 
+  <span className="ml-2 text-[11px] text-white/45 whitespace-nowrap">
+    swipe →
+  </span>
+</div>
         {featuredListings.length > 0 && (
           <section className="mb-6">
             <div className="sticky top-0 z-20 mb-3 bg-[#020617]/95 px-4 py-2 backdrop-blur-md">
