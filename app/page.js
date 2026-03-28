@@ -6,6 +6,16 @@ import { supabase } from '../lib/supabase';
 
 const islands = ['All', 'St. Kitts', 'Nevis'];
 
+const categoryIcons = {
+  Music: '♫',
+  Nightlife: '♥',
+  Family: '◔',
+  Food: '☕',
+  Tours: '✦',
+  Wellness: '☼',
+  Sports: '◆',
+};
+
 function normalizeIsland(value) {
   return String(value || '')
     .toLowerCase()
@@ -82,26 +92,33 @@ function formatEventDate(value) {
 
   const weekday = d.toLocaleDateString(undefined, { weekday: 'short' });
   const month = d.toLocaleDateString(undefined, { month: 'short' });
-  const day = String(d.getDate()).padStart(2, '0');
+  const day = d.getDate();
 
   let hours = d.getHours();
+  const minutes = d.getMinutes();
   const ampm = hours >= 12 ? 'pm' : 'am';
   hours = hours % 12 || 12;
 
-  return `${weekday} ${month} ${day} ${hours}${ampm}`;
+  const minuteText = minutes === 0 ? '' : `:${String(minutes).padStart(2, '0')}`;
+
+  return `${weekday} · ${month} ${day} · ${hours}${minuteText}${ampm}`;
 }
 
-function FilterPill({ active, children, onClick }) {
+function FilterPill({ active, children, onClick, icon = null }) {
   return (
     <button
       onClick={onClick}
-      className={`rounded-full border px-4 py-2.5 text-sm font-medium transition ${
+      className={[
+        'rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-200 backdrop-blur-xl',
         active
-          ? 'border-cyan-300 bg-cyan-300 text-slate-950 shadow-[0_0_18px_rgba(103,232,249,0.28)]'
-          : 'border-white/15 bg-slate-900/45 text-white/88 backdrop-blur-md hover:bg-white/10'
-      }`}
+          ? 'border-cyan-200/80 bg-cyan-300 text-slate-950 shadow-[0_0_20px_rgba(103,232,249,0.30)]'
+          : 'border-white/14 bg-black/22 text-white/88 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] hover:bg-white/10 hover:border-white/22',
+      ].join(' ')}
     >
-      {children}
+      <span className="flex items-center gap-2">
+        {icon ? <span className="text-[0.95rem] leading-none">{icon}</span> : null}
+        <span>{children}</span>
+      </span>
     </button>
   );
 }
@@ -112,15 +129,16 @@ function ListingCard({ item, onOpen }) {
 
   return (
     <div
-      className={`overflow-hidden rounded-[30px] border transition ${
+      className={[
+        'group overflow-hidden rounded-[28px] border backdrop-blur-xl transition-all duration-300',
         featured
-          ? 'border-yellow-400/75 bg-slate-950/78 shadow-[0_0_30px_rgba(250,204,21,0.18)]'
-          : 'border-white/12 bg-slate-950/68 shadow-[0_10px_35px_rgba(0,0,0,0.28)]'
-      } backdrop-blur-md`}
+          ? 'border-amber-300/80 bg-[#0e1324]/78 shadow-[0_0_30px_rgba(255,190,70,0.20)]'
+          : 'border-white/12 bg-[#0d1220]/68 shadow-[0_10px_35px_rgba(0,0,0,0.32)] hover:-translate-y-[2px] hover:border-white/20',
+      ].join(' ')}
     >
-      <div className="relative h-56 bg-slate-900">
+      <div className="relative h-56 overflow-hidden bg-slate-900">
         {featured && (
-          <div className="absolute left-3 top-3 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-extrabold text-black shadow-[0_0_16px_rgba(250,204,21,0.32)]">
+          <div className="absolute left-4 top-4 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-extrabold text-black shadow-[0_0_16px_rgba(250,204,21,0.35)]">
             FEATURED
           </div>
         )}
@@ -129,7 +147,7 @@ function ListingCard({ item, onOpen }) {
           <img
             src={image}
             alt={getTitle(item)}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-white/30">
@@ -137,20 +155,20 @@ function ListingCard({ item, onOpen }) {
           </div>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#071120] via-[#071120]/70 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#0b1020] via-[#0b1020]/78 to-transparent" />
       </div>
 
       <div className="space-y-3 p-4">
-        <div className="flex items-center justify-between gap-3 text-xs text-white/65">
+        <div className="flex items-center justify-between gap-3 text-xs text-white/62">
           <span>{getCategory(item)}</span>
           <span>{getIsland(item)}</span>
         </div>
 
-        <h3 className="text-xl font-semibold leading-tight text-white">
+        <h3 className="line-clamp-2 text-[1.35rem] font-semibold leading-tight text-white">
           {getTitle(item)}
         </h3>
 
-        <p className="text-sm text-white/70">{getLocation(item)}</p>
+        <p className="line-clamp-1 text-sm text-white/68">{getLocation(item)}</p>
 
         <div className="flex items-start justify-between gap-3 text-sm">
           <span className="text-white/82">{formatEventDate(getDate(item))}</span>
@@ -161,7 +179,7 @@ function ListingCard({ item, onOpen }) {
 
         <button
           onClick={() => onOpen(item)}
-          className="w-full rounded-2xl border border-cyan-200/50 bg-gradient-to-r from-cyan-300 to-sky-300 py-3 text-base font-semibold text-slate-950 shadow-[0_0_18px_rgba(103,232,249,0.24)] transition hover:brightness-105 active:scale-95"
+          className="w-full rounded-2xl border border-cyan-100/55 bg-gradient-to-b from-cyan-300 to-cyan-400 py-3 text-base font-semibold text-slate-950 shadow-[0_0_18px_rgba(103,232,249,0.28)] transition hover:brightness-105 active:scale-[0.99]"
         >
           Open
         </button>
@@ -170,13 +188,13 @@ function ListingCard({ item, onOpen }) {
   );
 }
 
-function FeaturedMiniCard({ item, onOpen }) {
+function FeaturedCard({ item, onOpen }) {
   const image = getImage(item);
 
   return (
-    <div className="w-[305px] shrink-0 snap-start overflow-hidden rounded-[32px] border border-yellow-400/80 bg-slate-950/82 shadow-[0_0_34px_rgba(250,204,21,0.18)] backdrop-blur-md">
-      <div className="relative h-44 bg-slate-900">
-        <div className="absolute left-3 top-3 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-extrabold text-black shadow-[0_0_16px_rgba(250,204,21,0.32)]">
+    <div className="group overflow-hidden rounded-[28px] border border-amber-300/80 bg-[#0e1324]/80 shadow-[0_0_34px_rgba(255,190,70,0.22)] backdrop-blur-xl transition duration-300 hover:-translate-y-[2px]">
+      <div className="relative h-52 overflow-hidden bg-slate-900">
+        <div className="absolute left-4 top-4 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-extrabold text-black shadow-[0_0_16px_rgba(250,204,21,0.32)]">
           FEATURED
         </div>
 
@@ -184,7 +202,7 @@ function FeaturedMiniCard({ item, onOpen }) {
           <img
             src={image}
             alt={getTitle(item)}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-white/30">
@@ -192,15 +210,15 @@ function FeaturedMiniCard({ item, onOpen }) {
           </div>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#071120] via-[#071120]/70 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0b1020] via-[#0b1020]/76 to-transparent" />
       </div>
 
       <div className="space-y-3 p-4">
-        <h3 className="line-clamp-1 text-[1.15rem] font-semibold text-white">
+        <h3 className="line-clamp-2 text-[1.15rem] font-semibold leading-tight text-white">
           {getTitle(item)}
         </h3>
 
-        <div className="flex items-center justify-between gap-3 text-sm text-white/78">
+        <div className="flex items-center justify-between gap-3 text-sm text-white/80">
           <span className="truncate">{formatEventDate(getDate(item))}</span>
           <span className="shrink-0 font-semibold text-white">
             {formatPrice(getPrice(item))}
@@ -209,7 +227,7 @@ function FeaturedMiniCard({ item, onOpen }) {
 
         <button
           onClick={() => onOpen(item)}
-          className="w-full rounded-2xl border border-cyan-200/50 bg-gradient-to-r from-cyan-300 to-sky-300 py-3 text-base font-semibold text-slate-950 shadow-[0_0_18px_rgba(103,232,249,0.24)] transition hover:brightness-105 active:scale-95"
+          className="w-full rounded-2xl border border-cyan-100/55 bg-gradient-to-b from-cyan-300 to-cyan-400 py-3 text-base font-semibold text-slate-950 shadow-[0_0_18px_rgba(103,232,249,0.28)] transition hover:brightness-105 active:scale-[0.99]"
         >
           Open
         </button>
@@ -300,115 +318,114 @@ export default function Page() {
 
   return (
     <main className="min-h-screen pb-24 text-white">
-      <div className="mx-auto max-w-6xl px-4 py-8 space-y-7">
-        <header className="space-y-5 text-center">
-          <div>
-            <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl">
-              869 To Do
-            </h1>
-            <p className="mt-2 text-sm text-white/75 sm:text-base">
-              What&apos;s happening in St. Kitts &amp; Nevis
-            </p>
-          </div>
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <section className="relative overflow-hidden rounded-[36px] border border-white/10 bg-black/14 px-4 py-8 shadow-[0_20px_70px_rgba(0,0,0,0.26)] backdrop-blur-[2px] sm:px-8 sm:py-10">
+          <div className="pointer-events-none absolute inset-0 rounded-[36px] bg-[radial-gradient(circle_at_top,rgba(255,240,210,0.16),transparent_22%),linear-gradient(180deg,rgba(255,186,109,0.10),rgba(6,10,20,0.06))]" />
 
-          <div>
-            <Link
-              href="/submit"
-              className="inline-block rounded-[24px] border border-amber-200/45 bg-gradient-to-r from-orange-400 via-amber-300 to-orange-300 px-8 py-3.5 text-base font-semibold text-slate-950 shadow-[0_0_28px_rgba(251,146,60,0.32)] transition hover:brightness-105"
-            >
-              Submit Listing
-            </Link>
-          </div>
-        </header>
+          <div className="relative z-10 mx-auto max-w-5xl">
+            <header className="space-y-5 text-center">
+              <div>
+                <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
+                  869 To Do
+                </h1>
+                <p className="mt-2 text-base text-white/80 sm:text-xl">
+                  What&apos;s happening in St. Kitts &amp; Nevis
+                </p>
+              </div>
 
-        <div className="rounded-[34px] border border-white/18 bg-slate-900/38 p-1 shadow-[0_0_22px_rgba(255,255,255,0.06)] backdrop-blur-md">
-          <div className="flex items-center rounded-[30px] bg-slate-950/40 px-5 py-4">
-            <span className="mr-3 text-3xl leading-none text-white/60">⌕</span>
-            <input
-              type="text"
-              placeholder="Search..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent text-lg text-white outline-none placeholder:text-white/45"
-            />
-          </div>
-        </div>
+              <div>
+                <Link
+                  href="/submit"
+                  className="inline-flex items-center justify-center rounded-[24px] border border-amber-100/60 bg-[linear-gradient(180deg,#ffb54d_0%,#ff9c47_40%,#f8b95b_100%)] px-8 py-3.5 text-lg font-semibold text-white shadow-[0_0_28px_rgba(255,170,66,0.42)] transition hover:brightness-105"
+                >
+                  Submit Listing
+                </Link>
+              </div>
+            </header>
 
-        <div className="space-y-3">
-          <div className="flex flex-wrap gap-2.5">
-            {islands.map((island) => (
-              <FilterPill
-                key={island}
-                active={selectedIsland === island}
-                onClick={() => setSelectedIsland(island)}
-              >
-                {island}
-              </FilterPill>
-            ))}
-          </div>
+            <div className="mt-8 rounded-[34px] border border-white/25 bg-black/20 p-1 shadow-[0_0_24px_rgba(255,255,255,0.06)] backdrop-blur-md">
+              <div className="flex items-center rounded-[30px] bg-[linear-gradient(180deg,rgba(20,22,38,0.52),rgba(10,13,24,0.58))] px-5 py-4">
+                <span className="mr-3 text-3xl leading-none text-white/60">⌕</span>
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full bg-transparent text-lg text-white outline-none placeholder:text-white/50"
+                />
+              </div>
+            </div>
 
-          <div className="flex flex-wrap gap-2.5">
-            {categories.map((category) => (
-              <FilterPill
-                key={category}
-                active={selectedCategory === category}
-                onClick={() => setSelectedCategory(category)}
-              >
-                {category}
-              </FilterPill>
-            ))}
+            <div className="mt-6 space-y-3">
+              <div className="flex flex-wrap justify-center gap-2.5">
+                {islands.map((island) => (
+                  <FilterPill
+                    key={island}
+                    active={selectedIsland === island}
+                    onClick={() => setSelectedIsland(island)}
+                  >
+                    {island}
+                  </FilterPill>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap justify-center gap-2.5">
+                {categories.map((category) => (
+                  <FilterPill
+                    key={category}
+                    active={selectedCategory === category}
+                    onClick={() => setSelectedCategory(category)}
+                    icon={categoryIcons[category] || null}
+                  >
+                    {category}
+                  </FilterPill>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
 
         {featuredListings.length > 0 && (
-          <section className="space-y-3 pt-5">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="text-2xl font-semibold text-amber-200">
+          <section className="pt-10">
+            <div className="mb-4 flex items-center justify-between gap-2">
+              <h2 className="text-2xl font-semibold text-amber-100 sm:text-[2rem]">
                 ✨ Featured in St. Kitts &amp; Nevis
               </h2>
-              <span className="text-sm text-amber-100/80">
+              <span className="text-sm text-amber-50/80">
                 {featuredListings.length} featured
               </span>
             </div>
 
-            <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               {featuredListings.map((item) => (
-                <FeaturedMiniCard
-                  key={item.id}
-                  item={item}
-                  onOpen={setOpenItem}
-                />
+                <FeaturedCard key={item.id} item={item} onOpen={setOpenItem} />
               ))}
             </div>
           </section>
         )}
 
-        <section className="space-y-4 pt-4">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-2xl font-semibold text-white">More to Do</h2>
+        <section className="pt-10">
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h2 className="text-2xl font-semibold text-white sm:text-[2rem]">
+              More to Do
+            </h2>
             {!loading && (
-              <span className="text-sm text-white/55">
-                {regularListings.length} results
-              </span>
+              <span className="text-sm text-white/58">{regularListings.length} results</span>
             )}
           </div>
 
           {loading ? (
-            <div className="rounded-3xl border border-white/10 bg-slate-900/50 py-10 text-center text-white/65 backdrop-blur-sm">
+            <div className="rounded-3xl border border-white/10 bg-[#0d1220]/55 py-10 text-center text-white/65 backdrop-blur-sm">
               Loading...
             </div>
           ) : regularListings.length === 0 ? (
-            <div className="rounded-3xl border border-white/10 bg-slate-900/50 py-10 text-center text-white/65 backdrop-blur-sm">
+            <div className="rounded-3xl border border-white/10 bg-[#0d1220]/55 py-10 text-center text-white/65 backdrop-blur-sm">
               No listings found
             </div>
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {regularListings.map((item) => (
-                <ListingCard
-                  key={item.id}
-                  item={item}
-                  onOpen={setOpenItem}
-                />
+                <ListingCard key={item.id} item={item} onOpen={setOpenItem} />
               ))}
             </div>
           )}
@@ -421,15 +438,15 @@ export default function Page() {
           onClick={() => setOpenItem(null)}
         >
           <div
-            className="max-h-[85vh] w-full overflow-y-auto rounded-t-[30px] border border-white/10 bg-slate-900/95 p-5 shadow-2xl"
+            className="max-h-[88vh] w-full overflow-y-auto rounded-t-[30px] border border-white/10 bg-[#0d1220]/95 p-5 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/20" />
 
-            <div className="space-y-4">
+            <div className="mx-auto max-w-3xl space-y-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-bold">{getTitle(openItem)}</h2>
+                  <h2 className="text-2xl font-bold">{getTitle(openItem)}</h2>
                   <p className="mt-1 text-sm text-white/60">
                     {getCategory(openItem)} • {getIsland(openItem)}
                   </p>
@@ -446,7 +463,7 @@ export default function Page() {
                 <img
                   src={getImage(openItem)}
                   alt={getTitle(openItem)}
-                  className="h-56 w-full cursor-pointer rounded-2xl object-cover"
+                  className="h-60 w-full cursor-pointer rounded-2xl object-cover"
                   onClick={() => setImageView(getImage(openItem))}
                 />
               )}
@@ -454,9 +471,7 @@ export default function Page() {
               <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm sm:grid-cols-2">
                 <div>
                   <p className="text-white/45">Date</p>
-                  <p className="mt-1 text-white">
-                    {formatEventDate(getDate(openItem))}
-                  </p>
+                  <p className="mt-1 text-white">{formatEventDate(getDate(openItem))}</p>
                 </div>
                 <div>
                   <p className="text-white/45">Price</p>
@@ -480,7 +495,7 @@ export default function Page() {
               </div>
 
               <button
-                className="w-full rounded-2xl border border-cyan-200/50 bg-gradient-to-r from-cyan-300 to-sky-300 py-3 font-semibold text-slate-950 shadow-[0_0_18px_rgba(103,232,249,0.24)]"
+                className="w-full rounded-2xl border border-cyan-100/55 bg-gradient-to-b from-cyan-300 to-cyan-400 py-3 font-semibold text-slate-950 shadow-[0_0_18px_rgba(103,232,249,0.28)]"
                 onClick={() => setOpenItem(null)}
               >
                 Close
