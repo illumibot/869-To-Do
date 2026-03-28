@@ -361,8 +361,7 @@ export default function Page() {
       <div className="flex gap-4">
         {featuredListings.map((item) => (
           <div
-            key={item.id}
-            className="min-w-[85vw] max-w-[85vw] shrink-0 snap-start sm:min-w-[380px] sm:max-w-[380px]"
+            key={item.id}className="min-w-[80vw] max-w-[80vw] shrink-0 snap-center sm:min-w-[360px] sm:max-w-[360px]"
           >
             <ListingCard item={item} />
           </div>
