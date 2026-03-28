@@ -161,13 +161,18 @@ export default function ListingDetailPage({ params }) {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <Link
-          href="/"
-          className="inline-block rounded-xl border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
-        >
-          Back to listings
-        </Link>
-
+       <button
+  onClick={() => {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = '/';
+    }
+  }}
+  className="mb-4 text-sm text-white/70 hover:text-white"
+>
+  ← Back to listings
+</button>
         <div className="mt-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5">
           <div className="h-72 w-full bg-white/5">
             {image ? (
