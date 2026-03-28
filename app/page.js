@@ -158,9 +158,9 @@ function ListingCard({ item }) {
   return (
     <div
       className={[
-        'overflow-hidden rounded-[24px] border bg-[#071224]',
+        'overflow-hidden rounded-[24px] border bg-[#071224] backdrop-blur-md',
         featured
-          ? 'border-[#f0b13c] shadow-[0_0_0_1px_rgba(240,177,60,0.22),0_0_22px_rgba(240,177,60,0.14)]'
+          ? 'border-[#f0b13c] shadow-[0_0_0_1px_rgba(240,177,60,0.35),0_0_30px_rgba(240,177,60,0.25)]'
           : 'border-white/10 shadow-[0_10px_24px_rgba(0,0,0,0.20)]',
       ].join(' ')}
     >
@@ -184,7 +184,7 @@ function ListingCard({ item }) {
         )}
       </div>
 
-      <div className="space-y-3 p-4">
+      <div className="space-y-3 bg-[#071224] p-4">
         <div className="flex flex-wrap gap-2 text-xs text-white/75">
           <span className="rounded-full bg-white/10 px-3 py-1">
             {category}
@@ -349,27 +349,29 @@ export default function Page() {
           </div>
         </div>
 
-      {featuredListings.length > 0 && (
-  <section className="mb-8">
-    <div className="mb-3 flex items-center justify-between">
-      <h2 className="text-xl font-bold text-white">
-        Featured ({featuredListings.length})
-      </h2>
-    </div>
+        {featuredListings.length > 0 && (
+          <section className="mb-8 sticky top-0 z-10 bg-[#020617] pt-2">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">
+                Featured ({featuredListings.length})
+              </h2>
+            </div>
 
-    <div className="overflow-x-auto px-4 pb-2 snap-x snap-mandatory">
-      <div className="flex gap-4">
-        {featuredListings.map((item) => (
-          <div
-            key={item.id}className="min-w-[80vw] max-w-[80vw] shrink-0 snap-center sm:min-w-[360px] sm:max-w-[360px]"
-          >
-            <ListingCard item={item} />
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-)}
+            <div className="overflow-x-auto px-4 pb-2 snap-x snap-mandatory scroll-smooth">
+              <div className="flex gap-4">
+                {featuredListings.map((item) => (
+                  <div
+                    key={item.id}
+                    className="min-w-[85vw] max-w-[85vw] shrink-0 snap-start sm:min-w-[360px] sm:max-w-[360px]"
+                  >
+                    <ListingCard item={item} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-xl font-bold text-white">All Listings</h2>
