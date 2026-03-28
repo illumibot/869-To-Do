@@ -2,14 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 255, 255, 255;
+/* Base reset */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
-html {
-  min-height: 100%;
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
+/* MAIN BACKGROUND */
 body {
   min-height: 100%;
   color: rgb(var(--foreground-rgb));
@@ -25,15 +31,24 @@ body {
       rgba(8, 20, 39, 0.84) 68%,
       #081427 100%
     ),
- url('https://raw.githubusercontent.com/illumibot/869-To-Do/main/background3.png');
+    url('/background3.png');
 
   background-size: cover;
- background-position: center 15%;
+  background-position: center 15%;
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-color: #081427;
 }
 
+/* Mobile tweak (THIS fixes your palm issue) */
+@media (max-width: 768px) {
+  body {
+    background-position: center top;
+    background-attachment: scroll;
+  }
+}
+
+/* Typography smoothing */
 body,
 input,
 button {
@@ -41,50 +56,13 @@ button {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Prevent image dragging */
 img {
   -webkit-user-drag: none;
 }
 
-.submit-btn {
-  min-width: 240px;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 232, 190, 0.75);
-  background: linear-gradient(180deg, #f3a64d 0%, #dd7f3f 100%);
-  box-shadow:
-    0 0 0 1px rgba(255, 245, 220, 0.08),
-    0 0 18px rgba(255, 160, 70, 0.22);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.28);
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-@media (max-width: 640px) {
-  body {
-    background:
-      linear-gradient(
-        to bottom,
-        rgba(8, 20, 39, 0.20) 0%,
-        rgba(8, 20, 39, 0.45) 35%,
-        rgba(8, 20, 39, 0.75) 65%,
-        #081427 100%
-      ),
-     url('https://raw.githubusercontent.com/illumibot/869-To-Do/main/background3.png');
-
-    background-repeat: no-repeat;
-    background-position: center top;
-    background-size: auto 1100px;
-    background-attachment: scroll;
-    background-color: #081427;
-  }
-
-  .submit-btn {
-    min-width: 250px;
-  }
+/* Links */
+a {
+  color: inherit;
+  text-decoration: none;
 }
