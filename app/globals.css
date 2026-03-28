@@ -15,31 +15,23 @@ body {
   color: rgb(var(--foreground-rgb));
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
+
   background:
-    radial-gradient(circle at 50% 12%, rgba(255, 181, 92, 0.10), transparent 18%),
     linear-gradient(
-      180deg,
-      #6e4257 0%,
-      #8c5660 14%,
-      #9f6762 24%,
-      #3f3d63 48%,
-      #102243 72%,
-      #061223 100%
-    );
-  background-color: #08111f;
+      to bottom,
+      rgba(8, 20, 39, 0.15) 0%,
+      rgba(8, 20, 39, 0.55) 40%,
+      rgba(8, 20, 39, 0.85) 70%,
+      #081427 100%
+    ),
+    url('/background.jpg');
+
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  opacity: 0.12;
-  background-image: radial-gradient(#fff5d9 0.75px, transparent 0.85px);
-  background-size: 36px 36px;
-}
-
+/* Smooth fonts */
 body,
 input,
 button {
@@ -47,37 +39,7 @@ button {
   -moz-osx-font-smoothing: grayscale;
 }
 
-img {
-  -webkit-user-drag: none;
-}
-
-.hero-shell {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background:
-    radial-gradient(circle at 50% 18%, rgba(255, 184, 96, 0.12), transparent 18%),
-    linear-gradient(
-      180deg,
-      rgba(128, 84, 91, 0.14) 0%,
-      rgba(108, 82, 93, 0.10) 24%,
-      rgba(18, 32, 65, 0.14) 58%,
-      rgba(5, 15, 34, 0.18) 100%
-    );
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.14);
-}
-
-.submit-btn {
-  min-width: 220px;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 238, 206, 0.58);
-  background: linear-gradient(180deg, #e28f47 0%, #f2a24a 55%, #d8843f 100%);
-  box-shadow:
-    0 0 0 1px rgba(255, 243, 214, 0.08),
-    0 0 18px rgba(240, 148, 64, 0.18);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
-}
-
+/* Hide scrollbars (mobile clean look) */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -85,10 +47,4 @@ img {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-@media (max-width: 640px) {
-  .submit-btn {
-    min-width: 250px;
-  }
 }
