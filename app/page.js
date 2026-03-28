@@ -158,7 +158,7 @@ function ListingCard({ item }) {
   return (
     <div
       className={[
-        'overflow-hidden rounded-[24px] border bg-[#071224]/92 backdrop-blur-sm',
+        'overflow-hidden rounded-[24px] border bg-[#071224]/88 backdrop-blur-sm',
         featured
           ? 'border-[#f0b13c] shadow-[0_0_0_1px_rgba(240,177,60,0.22),0_0_22px_rgba(240,177,60,0.14)]'
           : 'border-white/10 shadow-[0_10px_24px_rgba(0,0,0,0.20)]',
@@ -298,7 +298,7 @@ export default function Page() {
   const regularListings = filteredListings.filter((item) => !item.is_featured);
 
   return (
-  <div className="min-h-screen text-white">
+    <div className="min-h-screen text-white">
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
@@ -315,13 +315,13 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="mb-6 rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.72)] p-4 backdrop-blur-md">
+        <div className="mb-6 rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.62)] p-4 backdrop-blur-md">
           <input
             type="text"
             placeholder="Search events, venues, food, music..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="mb-4 w-full rounded-2xl border border-white/15 bg-[#08142b] px-4 py-3 text-white outline-none placeholder:text-white/40"
+            className="mb-4 w-full rounded-2xl border border-white/15 bg-[#08142b]/88 px-4 py-3 text-white outline-none placeholder:text-white/40"
           />
 
           <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
@@ -357,10 +357,17 @@ export default function Page() {
               <span className="text-sm text-white/60">{featuredListings.length}</span>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {featuredListings.map((item) => (
-                <ListingCard key={item.id} item={item} />
-              ))}
+            <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+              <div className="flex snap-x snap-mandatory gap-4">
+                {featuredListings.map((item) => (
+                  <div
+                    key={item.id}
+                    className="min-w-[85vw] max-w-[85vw] snap-start sm:min-w-[380px] sm:max-w-[380px]"
+                  >
+                    <ListingCard item={item} />
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
         )}
@@ -372,11 +379,11 @@ export default function Page() {
           </div>
 
           {loading ? (
-            <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.72)] p-6 text-white/70">
+            <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.62)] p-6 text-white/70">
               Loading listings...
             </div>
           ) : filteredListings.length === 0 ? (
-            <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.72)] p-6 text-white/70">
+            <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.62)] p-6 text-white/70">
               No listings found.
             </div>
           ) : (
