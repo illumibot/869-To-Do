@@ -1,7 +1,7 @@
+/* trigger deploy */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 /* Base reset */
 * {
   box-sizing: border-box;
