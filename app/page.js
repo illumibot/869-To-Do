@@ -96,7 +96,7 @@ function formatEventDate(value) {
 
   let hours = d.getHours();
   const minutes = d.getMinutes();
-  const ampm = hours >= 12 ? 'pm' : 'am';
+ const ampm = hours >= 12 ? 'pm' : 'am';
   hours = hours % 12 || 12;
 
   const minuteText = minutes === 0 ? '' : `:${String(minutes).padStart(2, '0')}`;
@@ -109,10 +109,10 @@ function FilterPill({ active, children, onClick, icon = null }) {
     <button
       onClick={onClick}
       className={[
-        'rounded-full border px-4 py-2.5 text-sm font-medium transition',
+        'rounded-full border px-4 py-2.5 text-sm font-medium transition whitespace-nowrap',
         active
-          ? 'border-cyan-200/70 bg-[#63dff5] text-black shadow-[0_0_22px_rgba(99,223,245,0.28)]'
-          : 'border-white/22 bg-[rgba(8,19,45,0.62)] text-white/92 hover:bg-[rgba(12,28,64,0.82)]',
+          ? 'border-cyan-100/70 bg-[#63dff5] text-black shadow-[0_0_16px_rgba(99,223,245,0.22)]'
+          : 'border-white/20 bg-[rgba(8,18,42,0.74)] text-white/92 hover:bg-[rgba(12,27,58,0.88)]',
       ].join(' ')}
     >
       <span className="flex items-center gap-2">
@@ -130,10 +130,10 @@ function ListingCard({ item, onOpen }) {
   return (
     <div
       className={[
-        'overflow-hidden rounded-[24px] border bg-[#071224] transition',
+        'overflow-hidden rounded-[24px] border bg-[#071224]',
         featured
-          ? 'border-[#f3b33d] shadow-[0_0_0_1px_rgba(243,179,61,0.25),0_0_24px_rgba(243,179,61,0.18)]'
-          : 'border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.22)]',
+          ? 'border-[#f0b13c] shadow-[0_0_0_1px_rgba(240,177,60,0.22),0_0_22px_rgba(240,177,60,0.14)]'
+          : 'border-white/10 shadow-[0_10px_24px_rgba(0,0,0,0.20)]',
       ].join(' ')}
     >
       <div className="relative h-52 bg-slate-900">
@@ -144,11 +144,7 @@ function ListingCard({ item, onOpen }) {
         )}
 
         {image ? (
-          <img
-            src={image}
-            alt={getTitle(item)}
-            className="h-full w-full object-cover"
-          />
+          <img src={image} alt={getTitle(item)} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center text-white/30">
             No image
@@ -164,11 +160,11 @@ function ListingCard({ item, onOpen }) {
           <span>{getIsland(item)}</span>
         </div>
 
-        <h3 className="line-clamp-2 text-[1.22rem] font-semibold leading-tight text-white">
+        <h3 className="line-clamp-2 text-[1.18rem] font-semibold leading-tight text-white">
           {getTitle(item)}
         </h3>
 
-        <p className="line-clamp-1 text-sm text-white/72">{getLocation(item)}</p>
+        <p className="line-clamp-1 text-sm text-white/70">{getLocation(item)}</p>
 
         <div className="flex items-start justify-between gap-3 text-sm">
           <span className="text-white/82">{formatEventDate(getDate(item))}</span>
@@ -179,7 +175,7 @@ function ListingCard({ item, onOpen }) {
 
         <button
           onClick={() => onOpen(item)}
-          className="w-full rounded-2xl border border-cyan-100/45 bg-gradient-to-b from-[#72edf8] to-[#4de0f2] py-3 text-base font-semibold text-slate-950 shadow-[0_0_16px_rgba(103,232,249,0.20)] transition hover:brightness-105 active:scale-[0.99]"
+          className="w-full rounded-2xl border border-cyan-100/45 bg-gradient-to-b from-[#71ebf7] to-[#4ddff1] py-3 text-base font-semibold text-slate-950 shadow-[0_0_14px_rgba(103,232,249,0.18)] transition hover:brightness-105 active:scale-[0.99]"
         >
           Open
         </button>
@@ -188,22 +184,18 @@ function ListingCard({ item, onOpen }) {
   );
 }
 
-function FeaturedCard({ item, onOpen }) {
+function FeaturedMiniCard({ item, onOpen }) {
   const image = getImage(item);
 
   return (
-    <div className="overflow-hidden rounded-[24px] border border-[#f3b33d] bg-[#071224] shadow-[0_0_0_1px_rgba(243,179,61,0.26),0_0_28px_rgba(243,179,61,0.20)]">
-      <div className="relative h-48 bg-slate-900">
+    <div className="w-[285px] shrink-0 snap-start overflow-hidden rounded-[24px] border border-[#f0b13c] bg-[#071224] shadow-[0_0_0_1px_rgba(240,177,60,0.22),0_0_24px_rgba(240,177,60,0.16)] sm:w-[310px]">
+      <div className="relative h-44 bg-slate-900">
         <div className="absolute left-4 top-4 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-extrabold text-black">
           FEATURED
         </div>
 
         {image ? (
-          <img
-            src={image}
-            alt={getTitle(item)}
-            className="h-full w-full object-cover"
-          />
+          <img src={image} alt={getTitle(item)} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center text-white/30">
             No image
@@ -214,7 +206,7 @@ function FeaturedCard({ item, onOpen }) {
       </div>
 
       <div className="space-y-3 p-4">
-        <h3 className="line-clamp-2 text-[1.1rem] font-semibold leading-tight text-white">
+        <h3 className="line-clamp-2 text-[1.08rem] font-semibold leading-tight text-white">
           {getTitle(item)}
         </h3>
 
@@ -227,7 +219,7 @@ function FeaturedCard({ item, onOpen }) {
 
         <button
           onClick={() => onOpen(item)}
-          className="w-full rounded-2xl border border-cyan-100/45 bg-gradient-to-b from-[#72edf8] to-[#4de0f2] py-3 text-base font-semibold text-slate-950 shadow-[0_0_16px_rgba(103,232,249,0.20)] transition hover:brightness-105 active:scale-[0.99]"
+          className="w-full rounded-2xl border border-cyan-100/45 bg-gradient-to-b from-[#71ebf7] to-[#4ddff1] py-3 text-base font-semibold text-slate-950 shadow-[0_0_14px_rgba(103,232,249,0.18)] transition hover:brightness-105 active:scale-[0.99]"
         >
           Open
         </button>
@@ -318,29 +310,30 @@ export default function Page() {
   return (
     <main className="min-h-screen pb-20 text-white">
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-        <section className="hero-shell rounded-[30px] px-4 py-7 sm:px-8 sm:py-10">
+        <section className="hero-shell rounded-[28px] px-4 py-6 sm:px-8 sm:py-9">
           <div className="mx-auto max-w-5xl">
             <header className="text-center">
               <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
                 869 To Do
               </h1>
-              <p className="mt-3 text-base text-white/85 sm:text-xl">
+
+              <p className="mt-3 text-base text-white/84 sm:text-xl">
                 What&apos;s happening in St. Kitts &amp; Nevis
               </p>
 
-              <div className="mt-6">
+              <div className="mt-5">
                 <Link
                   href="/submit"
-                  className="submit-btn inline-flex items-center justify-center px-8 py-3.5 text-lg font-semibold text-white"
+                  className="submit-btn inline-flex items-center justify-center px-8 py-3 text-lg font-semibold text-white"
                 >
                   Submit Listing
                 </Link>
               </div>
             </header>
 
-            <div className="mt-8 rounded-[30px] border border-white/22 bg-[rgba(7,16,36,0.72)] p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.20)]">
-              <div className="flex items-center rounded-[26px] px-5 py-4">
-                <span className="mr-3 text-3xl leading-none text-white/62">⌕</span>
+            <div className="mx-auto mt-7 max-w-4xl rounded-[28px] border border-white/22 bg-[rgba(6,15,34,0.74)] p-1.5 shadow-[0_8px_22px_rgba(0,0,0,0.18)]">
+              <div className="flex items-center rounded-[24px] px-5 py-3.5 sm:py-4">
+                <span className="mr-3 text-3xl leading-none text-white/58">⌕</span>
                 <input
                   type="text"
                   placeholder="Search..."
@@ -351,7 +344,7 @@ export default function Page() {
               </div>
             </div>
 
-            <div className="mt-6 space-y-3">
+            <div className="mt-5 space-y-3">
               <div className="flex flex-wrap justify-center gap-2.5">
                 {islands.map((island) => (
                   <FilterPill
@@ -391,9 +384,9 @@ export default function Page() {
               </span>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 no-scrollbar">
               {featuredListings.map((item) => (
-                <FeaturedCard key={item.id} item={item} onOpen={setOpenItem} />
+                <FeaturedMiniCard key={item.id} item={item} onOpen={setOpenItem} />
               ))}
             </div>
           </section>
@@ -490,7 +483,7 @@ export default function Page() {
               </div>
 
               <button
-                className="w-full rounded-2xl border border-cyan-100/45 bg-gradient-to-b from-[#72edf8] to-[#4de0f2] py-3 font-semibold text-slate-950 shadow-[0_0_16px_rgba(103,232,249,0.20)]"
+                className="w-full rounded-2xl border border-cyan-100/45 bg-gradient-to-b from-[#71ebf7] to-[#4ddff1] py-3 font-semibold text-slate-950 shadow-[0_0_14px_rgba(103,232,249,0.18)]"
                 onClick={() => setOpenItem(null)}
               >
                 Close
