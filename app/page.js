@@ -468,7 +468,7 @@ export default function Page() {
             </div>
           ) : filteredListings.length === 0 ? (
             <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.78)] p-6 text-white/70">
-              No listings found.
+             No results found{search ? ` for "${search}"` : ''}.
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
