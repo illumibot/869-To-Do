@@ -355,6 +355,7 @@ export default function Page() {
     swipe →
   </span>
 </div>
+</div>
         {featuredListings.length > 0 && (
           <section className="mb-6">
             <div className="sticky top-0 z-20 mb-3 bg-[#020617]/95 px-4 py-2 backdrop-blur-md">
