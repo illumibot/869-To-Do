@@ -259,15 +259,36 @@ export default function Page() {
     loadListings();
   }, []);
 
-  const categories = useMemo(() => {
-    const found = Array.from(
-      new Set(listings.map((item) => getCategory(item)).filter(Boolean))
-    )
-      .filter((c) => c !== 'Specials')
-      .sort();
+const categories = useMemo(() => {
+  const categoryOrder = [
+    'Events',
+    'Food',
+    'Music',
+    'Nightlife',
+    'Family',
+    'Tours',
+    'Wellness',
+    'Sports',
+    'Other',
+  ];
 
-    return ['All', ...found];
-  }, [listings]);
+  const found = Array.from(
+    new Set(listings.map((item) => getCategory(item)).filter(Boolean))
+  ).filter((c) => c !== 'Specials');
+
+  const sorted = found.sort((a, b) => {
+    const aIndex = categoryOrder.indexOf(a);
+    const bIndex = categoryOrder.indexOf(b);
+
+    if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+
+    return aIndex - bIndex;
+  });
+
+  return ['All', ...sorted];
+}, [listings]);
 
   const filteredListings = useMemo(() => {
     const q = search.trim().toLowerCase();
