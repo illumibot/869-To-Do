@@ -298,18 +298,7 @@ export default function Page() {
   const regularListings = filteredListings.filter((item) => !item.is_featured);
 
   return (
-    <div
-      className="min-h-screen text-white"
-      style={{
-        backgroundImage:
-          "linear-gradient(rgba(1,10,28,0.28), rgba(1,10,28,0.48)), url('/background3.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center top',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'scroll',
-        backgroundColor: '#020b18',
-      }}
-    >
+  <div className="min-h-screen text-white">
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
