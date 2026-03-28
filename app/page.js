@@ -111,8 +111,8 @@ function FilterPill({ active, children, onClick, icon = null }) {
       className={[
         'rounded-full border px-4 py-2.5 text-sm font-medium transition',
         active
-          ? 'border-cyan-200 bg-cyan-300 text-slate-950 shadow-[0_0_18px_rgba(103,232,249,0.25)]'
-          : 'border-white/40 bg-[#0a1330]/72 text-white hover:bg-white/10',
+          ? 'border-cyan-200/70 bg-[#63dff5] text-black shadow-[0_0_22px_rgba(99,223,245,0.28)]'
+          : 'border-white/22 bg-[rgba(8,19,45,0.62)] text-white/92 hover:bg-[rgba(12,28,64,0.82)]',
       ].join(' ')}
     >
       <span className="flex items-center gap-2">
@@ -130,10 +130,10 @@ function ListingCard({ item, onOpen }) {
   return (
     <div
       className={[
-        'overflow-hidden rounded-[24px] border transition',
+        'overflow-hidden rounded-[24px] border bg-[#071224] transition',
         featured
-          ? 'border-amber-300/80 bg-[#0c1222] shadow-[0_0_24px_rgba(255,190,70,0.16)]'
-          : 'border-white/12 bg-[#0c1222]/92 shadow-[0_10px_24px_rgba(0,0,0,0.22)]',
+          ? 'border-[#f3b33d] shadow-[0_0_0_1px_rgba(243,179,61,0.25),0_0_24px_rgba(243,179,61,0.18)]'
+          : 'border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.22)]',
       ].join(' ')}
     >
       <div className="relative h-52 bg-slate-900">
@@ -155,7 +155,7 @@ function ListingCard({ item, onOpen }) {
           </div>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0c1222] via-[#0c1222]/70 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#071224] via-[#071224]/78 to-transparent" />
       </div>
 
       <div className="space-y-3 p-4">
@@ -164,11 +164,11 @@ function ListingCard({ item, onOpen }) {
           <span>{getIsland(item)}</span>
         </div>
 
-        <h3 className="line-clamp-2 text-[1.25rem] font-semibold leading-tight text-white">
+        <h3 className="line-clamp-2 text-[1.22rem] font-semibold leading-tight text-white">
           {getTitle(item)}
         </h3>
 
-        <p className="line-clamp-1 text-sm text-white/68">{getLocation(item)}</p>
+        <p className="line-clamp-1 text-sm text-white/72">{getLocation(item)}</p>
 
         <div className="flex items-start justify-between gap-3 text-sm">
           <span className="text-white/82">{formatEventDate(getDate(item))}</span>
@@ -179,7 +179,7 @@ function ListingCard({ item, onOpen }) {
 
         <button
           onClick={() => onOpen(item)}
-          className="w-full rounded-2xl border border-cyan-100/50 bg-gradient-to-b from-cyan-300 to-cyan-400 py-3 text-base font-semibold text-slate-950 shadow-[0_0_18px_rgba(103,232,249,0.22)] transition hover:brightness-105 active:scale-[0.99]"
+          className="w-full rounded-2xl border border-cyan-100/45 bg-gradient-to-b from-[#72edf8] to-[#4de0f2] py-3 text-base font-semibold text-slate-950 shadow-[0_0_16px_rgba(103,232,249,0.20)] transition hover:brightness-105 active:scale-[0.99]"
         >
           Open
         </button>
@@ -192,7 +192,7 @@ function FeaturedCard({ item, onOpen }) {
   const image = getImage(item);
 
   return (
-    <div className="overflow-hidden rounded-[24px] border border-amber-300/80 bg-[#0c1222] shadow-[0_0_24px_rgba(255,190,70,0.16)]">
+    <div className="overflow-hidden rounded-[24px] border border-[#f3b33d] bg-[#071224] shadow-[0_0_0_1px_rgba(243,179,61,0.26),0_0_28px_rgba(243,179,61,0.20)]">
       <div className="relative h-48 bg-slate-900">
         <div className="absolute left-4 top-4 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-extrabold text-black">
           FEATURED
@@ -210,7 +210,7 @@ function FeaturedCard({ item, onOpen }) {
           </div>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0c1222] via-[#0c1222]/70 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#071224] via-[#071224]/78 to-transparent" />
       </div>
 
       <div className="space-y-3 p-4">
@@ -218,7 +218,7 @@ function FeaturedCard({ item, onOpen }) {
           {getTitle(item)}
         </h3>
 
-        <div className="flex items-center justify-between gap-3 text-sm text-white/80">
+        <div className="flex items-center justify-between gap-3 text-sm text-white/82">
           <span className="truncate">{formatEventDate(getDate(item))}</span>
           <span className="shrink-0 font-semibold text-white">
             {formatPrice(getPrice(item))}
@@ -227,7 +227,7 @@ function FeaturedCard({ item, onOpen }) {
 
         <button
           onClick={() => onOpen(item)}
-          className="w-full rounded-2xl border border-cyan-100/50 bg-gradient-to-b from-cyan-300 to-cyan-400 py-3 text-base font-semibold text-slate-950 shadow-[0_0_18px_rgba(103,232,249,0.22)] transition hover:brightness-105 active:scale-[0.99]"
+          className="w-full rounded-2xl border border-cyan-100/45 bg-gradient-to-b from-[#72edf8] to-[#4de0f2] py-3 text-base font-semibold text-slate-950 shadow-[0_0_16px_rgba(103,232,249,0.20)] transition hover:brightness-105 active:scale-[0.99]"
         >
           Open
         </button>
@@ -276,9 +276,8 @@ export default function Page() {
 
     listings.forEach((item) => {
       const category = getCategory(item);
-      if (String(category).trim().toLowerCase() !== 'specials') {
-        set.add(category);
-      }
+      if (String(category).trim().toLowerCase() === 'specials') return;
+      set.add(category);
     });
 
     return ['All', ...Array.from(set)];
@@ -318,36 +317,36 @@ export default function Page() {
 
   return (
     <main className="min-h-screen pb-20 text-white">
-      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-        <section className="rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(188,112,95,0.30)_0%,rgba(216,157,93,0.22)_24%,rgba(33,47,89,0.14)_56%,rgba(6,12,28,0.06)_100%)] px-4 py-8 shadow-[0_18px_50px_rgba(0,0,0,0.16)] sm:px-8 sm:py-10">
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <section className="hero-shell rounded-[30px] px-4 py-7 sm:px-8 sm:py-10">
           <div className="mx-auto max-w-5xl">
             <header className="text-center">
               <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
                 869 To Do
               </h1>
-              <p className="mt-3 text-base text-white/82 sm:text-xl">
+              <p className="mt-3 text-base text-white/85 sm:text-xl">
                 What&apos;s happening in St. Kitts &amp; Nevis
               </p>
 
               <div className="mt-6">
                 <Link
                   href="/submit"
-                  className="inline-flex items-center justify-center rounded-[24px] border border-amber-100/60 bg-gradient-to-b from-[#ffbf5d] to-[#f4a64c] px-8 py-3.5 text-lg font-semibold text-white shadow-[0_0_24px_rgba(255,174,71,0.32)] transition hover:brightness-105"
+                  className="submit-btn inline-flex items-center justify-center px-8 py-3.5 text-lg font-semibold text-white"
                 >
                   Submit Listing
                 </Link>
               </div>
             </header>
 
-            <div className="mt-8 rounded-[30px] border border-white/18 bg-[#0a1021]/82 p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.18)]">
+            <div className="mt-8 rounded-[30px] border border-white/22 bg-[rgba(7,16,36,0.72)] p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.20)]">
               <div className="flex items-center rounded-[26px] px-5 py-4">
-                <span className="mr-3 text-3xl leading-none text-white/58">⌕</span>
+                <span className="mr-3 text-3xl leading-none text-white/62">⌕</span>
                 <input
                   type="text"
                   placeholder="Search..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-transparent text-lg text-white outline-none placeholder:text-white/44"
+                  className="w-full bg-transparent text-lg text-white outline-none placeholder:text-white/42"
                 />
               </div>
             </div>
@@ -383,11 +382,11 @@ export default function Page() {
 
         {featuredListings.length > 0 && (
           <section className="pt-8 sm:pt-10">
-            <div className="mb-4 flex items-center justify-between gap-2">
-              <h2 className="text-2xl font-semibold text-amber-100 sm:text-[2rem]">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <h2 className="max-w-[75%] text-2xl font-semibold leading-tight text-[#f4ebbf] sm:max-w-none sm:text-[2rem]">
                 ✨ Featured in St. Kitts &amp; Nevis
               </h2>
-              <span className="text-sm text-amber-50/80">
+              <span className="pt-1 text-right text-sm text-[#efe3ba]/85">
                 {featuredListings.length} featured
               </span>
             </div>
@@ -411,11 +410,11 @@ export default function Page() {
           </div>
 
           {loading ? (
-            <div className="rounded-3xl border border-white/10 bg-[#0c1222]/92 py-10 text-center text-white/65">
+            <div className="rounded-3xl border border-white/10 bg-[#071224] py-10 text-center text-white/65">
               Loading...
             </div>
           ) : regularListings.length === 0 ? (
-            <div className="rounded-3xl border border-white/10 bg-[#0c1222]/92 py-10 text-center text-white/65">
+            <div className="rounded-3xl border border-white/10 bg-[#071224] py-10 text-center text-white/65">
               No listings found
             </div>
           ) : (
@@ -434,7 +433,7 @@ export default function Page() {
           onClick={() => setOpenItem(null)}
         >
           <div
-            className="max-h-[88vh] w-full overflow-y-auto rounded-t-[30px] border border-white/10 bg-[#0d1220] p-5 shadow-2xl"
+            className="max-h-[88vh] w-full overflow-y-auto rounded-t-[30px] border border-white/10 bg-[#0c1222] p-5 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/20" />
@@ -491,7 +490,7 @@ export default function Page() {
               </div>
 
               <button
-                className="w-full rounded-2xl border border-cyan-100/50 bg-gradient-to-b from-cyan-300 to-cyan-400 py-3 font-semibold text-slate-950 shadow-[0_0_18px_rgba(103,232,249,0.22)]"
+                className="w-full rounded-2xl border border-cyan-100/45 bg-gradient-to-b from-[#72edf8] to-[#4de0f2] py-3 font-semibold text-slate-950 shadow-[0_0_16px_rgba(103,232,249,0.20)]"
                 onClick={() => setOpenItem(null)}
               >
                 Close
