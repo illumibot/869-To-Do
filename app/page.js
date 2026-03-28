@@ -349,7 +349,7 @@ export default function Page() {
           </div>
         </div>
 
-       {featuredListings.length > 0 && (
+      {featuredListings.length > 0 && (
   <section className="mb-8">
     <div className="mb-3 flex items-center justify-between">
       <h2 className="text-xl font-bold text-white">
@@ -371,7 +371,6 @@ export default function Page() {
     </div>
   </section>
 )}
-
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-xl font-bold text-white">All Listings</h2>
