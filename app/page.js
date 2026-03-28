@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import background3 from '../public/background3.png';
+import background3 from '../background3.png';
 
 const islands = ['All', 'St. Kitts', 'Nevis'];
 
