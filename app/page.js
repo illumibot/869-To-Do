@@ -324,12 +324,15 @@ const categories = useMemo(() => {
     <div className="min-h-screen text-white">
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-md">
-            <p className="mt-2 text-white/70">
-              Events, live music, food, nightlife, and things happening in St. Kitts and Nevis.
-            </p>
-          </div>
+       <div>
+  <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-md">
+    869 To Do <span className="ml-2 text-2xl md:text-3xl">🇰🇳</span>
+  </h1>
+
+  <p className="mt-2 text-white/70">
+    Events, live music, food, nightlife, and things happening in St. Kitts and Nevis.
+  </p>
+</div>
 
           <div className="flex flex-wrap gap-2">
             <TopActionButton href="/" primary>Home</TopActionButton>
