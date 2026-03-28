@@ -84,3 +84,21 @@ img {
     min-width: 250px;
   }
 }
+/* MOBILE BACKGROUND OVERRIDE */
+@media (max-width: 640px) {
+  body {
+    background:
+      linear-gradient(
+        to bottom,
+        rgba(8, 20, 39, 0.25) 0%,
+        rgba(8, 20, 39, 0.55) 40%,
+        rgba(8, 20, 39, 0.85) 70%,
+        #081427 100%
+      ),
+     url('https://cdn.jsdelivr.net/gh/illumibot/869-To-Do@main/background.png');
+
+    background-size: cover;
+    background-position: center;
+    background-attachment: scroll;
+  }
+}
