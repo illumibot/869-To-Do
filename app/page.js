@@ -316,13 +316,13 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="mb-6 rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.78)] p-4 backdrop-blur-md">
+        <div className="mb-6 rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.78)] px-4 py-4 backdrop-blur-md">
           <input
             type="text"
             placeholder="Search events, venues, food, music..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="mb-4 w-full rounded-2xl border border-white/15 bg-[#08142b] px-4 py-3 text-white outline-none placeholder:text-white/40"
+            className="mb-4 w-full rounded-2xl border border-white/15 bg-[#08142b] px-5 py-3 text-white outline-none placeholder:text-white/40"
           />
 
           <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
@@ -353,7 +353,7 @@ export default function Page() {
 
         {featuredListings.length > 0 && (
           <section className="mb-6">
-            <div className="sticky top-0 z-20 mb-3 bg-[#020617]/95 py-2 backdrop-blur-md">
+            <div className="sticky top-0 z-20 mb-3 bg-[#020617]/95 px-4 py-2 backdrop-blur-md">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-white">
                   Featured ({featuredListings.length})
