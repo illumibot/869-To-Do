@@ -24,14 +24,13 @@ body {
       rgba(8, 20, 39, 0.85) 70%,
       #081427 100%
     ),
-    url('/background.png')
+    url('/background.png');
 
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
 }
 
-/* Smooth fonts */
 body,
 input,
 button {
@@ -39,7 +38,6 @@ button {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Hide scrollbars (mobile clean look) */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
