@@ -357,7 +357,7 @@ export default function Page() {
       </h2>
     </div>
 
-    <div className="-mx-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory scroll-smooth sm:mx-0 sm:px-0">
+    <div className="overflow-x-auto px-4 pb-2 snap-x snap-mandatory">
       <div className="flex gap-4">
         {featuredListings.map((item) => (
           <div
