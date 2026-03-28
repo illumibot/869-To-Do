@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 
 const islands = ['All', 'St. Kitts', 'Nevis'];
@@ -150,10 +151,13 @@ function TopActionButton({ href, children, primary = false }) {
   );
 }
 
-function ListingCard({ item, compact = false }) {
+function ListingCard({ item, compact = false, queryString = '' }) {
   const featured = !!item.is_featured;
   const image = getImage(item);
   const category = getCategory(item);
+  const href = queryString
+    ? `/listing/${item.id}?${queryString}`
+    : `/listing/${item.id}`;
 
   return (
     <div
@@ -211,7 +215,7 @@ function ListingCard({ item, compact = false }) {
         </p>
 
         <Link
-          href={`/listing/${item.id}`}
+          href={href}
           className="block w-full rounded-2xl bg-cyan-400 py-3 text-center font-semibold text-black transition hover:brightness-110"
         >
           Open
@@ -222,10 +226,14 @@ function ListingCard({ item, compact = false }) {
 }
 
 export default function Page() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [listings, setListings] = useState([]);
-  const [search, setSearch] = useState('');
-  const [activeIsland, setActiveIsland] = useState('All');
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [activeIsland, setActiveIsland] = useState(searchParams.get('island') || 'All');
+  const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'All');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -259,36 +267,57 @@ export default function Page() {
     loadListings();
   }, []);
 
-const categories = useMemo(() => {
-  const categoryOrder = [
-    'Events',
-    'Food',
-    'Music',
-    'Nightlife',
-    'Family',
-    'Tours',
-    'Wellness',
-    'Sports',
-    'Other',
-  ];
+  useEffect(() => {
+    const nextSearch = searchParams.get('search') || '';
+    const nextIsland = searchParams.get('island') || 'All';
+    const nextCategory = searchParams.get('category') || 'All';
 
-  const found = Array.from(
-    new Set(listings.map((item) => getCategory(item)).filter(Boolean))
-  ).filter((c) => c !== 'Specials');
+    setSearch(nextSearch);
+    setActiveIsland(nextIsland);
+    setActiveCategory(nextCategory);
+  }, [searchParams]);
 
-  const sorted = found.sort((a, b) => {
-    const aIndex = categoryOrder.indexOf(a);
-    const bIndex = categoryOrder.indexOf(b);
+  function updateUrl(nextSearch, nextIsland, nextCategory) {
+    const params = new URLSearchParams();
 
-    if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
-    if (aIndex === -1) return 1;
-    if (bIndex === -1) return -1;
+    if (nextSearch.trim()) params.set('search', nextSearch.trim());
+    if (nextIsland !== 'All') params.set('island', nextIsland);
+    if (nextCategory !== 'All') params.set('category', nextCategory);
 
-    return aIndex - bIndex;
-  });
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }
 
-  return ['All', ...sorted];
-}, [listings]);
+  const categories = useMemo(() => {
+    const categoryOrder = [
+      'Events',
+      'Food',
+      'Music',
+      'Nightlife',
+      'Family',
+      'Tours',
+      'Wellness',
+      'Sports',
+      'Other',
+    ];
+
+    const found = Array.from(
+      new Set(listings.map((item) => getCategory(item)).filter(Boolean))
+    ).filter((c) => c !== 'Specials');
+
+    const sorted = found.sort((a, b) => {
+      const aIndex = categoryOrder.indexOf(a);
+      const bIndex = categoryOrder.indexOf(b);
+
+      if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+
+      return aIndex - bIndex;
+    });
+
+    return ['All', ...sorted];
+  }, [listings]);
 
   const filteredListings = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -320,19 +349,29 @@ const categories = useMemo(() => {
   const featuredListings = filteredListings.filter((item) => !!item.is_featured);
   const regularListings = filteredListings.filter((item) => !item.is_featured);
 
+  const currentQueryString = useMemo(() => {
+    const params = new URLSearchParams();
+
+    if (search.trim()) params.set('search', search.trim());
+    if (activeIsland !== 'All') params.set('island', activeIsland);
+    if (activeCategory !== 'All') params.set('category', activeCategory);
+
+    return params.toString();
+  }, [search, activeIsland, activeCategory]);
+
   return (
     <div className="min-h-screen text-white">
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-       <div>
-  <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-md">
-    869 To Do <span className="ml-2 text-2xl md:text-3xl">🇰🇳</span>
-  </h1>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-md">
+              869 To Do <span className="ml-2 text-2xl md:text-3xl">🇰🇳</span>
+            </h1>
 
-  <p className="mt-2 text-white/70">
-    Events, live music, food, nightlife, and things happening in St. Kitts and Nevis.
-  </p>
-</div>
+            <p className="mt-2 text-white/70">
+              Events, live music, food, nightlife, and things happening in St. Kitts and Nevis.
+            </p>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             <TopActionButton href="/" primary>Home</TopActionButton>
@@ -345,7 +384,11 @@ const categories = useMemo(() => {
             type="text"
             placeholder="Search events, venues, food, music..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearch(value);
+              updateUrl(value, activeIsland, activeCategory);
+            }}
             className="mb-4 w-full rounded-2xl border border-white/15 bg-[#08142b] px-5 py-3 text-white outline-none placeholder:text-white/40"
           />
 
@@ -354,32 +397,39 @@ const categories = useMemo(() => {
               <FilterPill
                 key={island}
                 active={activeIsland === island}
-                onClick={() => setActiveIsland(island)}
+                onClick={() => {
+                  setActiveIsland(island);
+                  updateUrl(search, island, activeCategory);
+                }}
               >
                 {island}
               </FilterPill>
             ))}
           </div>
 
-       <div className="flex items-center gap-2">
-  <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-    {categories.map((category) => (
-      <FilterPill
-        key={category}
-        active={activeCategory === category}
-        onClick={() => setActiveCategory(category)}
-        icon={category === 'All' ? null : categoryIcons[category] || categoryIcons.General}
-      >
-        {category}
-      </FilterPill>
-    ))}
-  </div>
+          <div className="flex items-center gap-2">
+            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+              {categories.map((category) => (
+                <FilterPill
+                  key={category}
+                  active={activeCategory === category}
+                  onClick={() => {
+                    setActiveCategory(category);
+                    updateUrl(search, activeIsland, category);
+                  }}
+                  icon={category === 'All' ? null : categoryIcons[category] || categoryIcons.General}
+                >
+                  {category}
+                </FilterPill>
+              ))}
+            </div>
 
-  <span className="ml-2 text-[11px] text-white/45 whitespace-nowrap">
-    swipe →
-  </span>
-</div>
-</div>
+            <span className="ml-2 whitespace-nowrap text-[11px] text-white/45">
+              swipe →
+            </span>
+          </div>
+        </div>
+
         {featuredListings.length > 0 && (
           <section className="mb-6">
             <div className="sticky top-0 z-20 mb-3 bg-[#020617]/95 px-4 py-2 backdrop-blur-md">
@@ -398,7 +448,7 @@ const categories = useMemo(() => {
                     key={item.id}
                     className="min-w-[78vw] max-w-[78vw] shrink-0 snap-start sm:min-w-[360px] sm:max-w-[360px]"
                   >
-                    <ListingCard item={item} compact />
+                    <ListingCard item={item} compact queryString={currentQueryString} />
                   </div>
                 ))}
               </div>
@@ -423,7 +473,7 @@ const categories = useMemo(() => {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {regularListings.map((item) => (
-                <ListingCard key={item.id} item={item} />
+                <ListingCard key={item.id} item={item} queryString={currentQueryString} />
               ))}
             </div>
           )}
