@@ -123,7 +123,7 @@ function FilterPill({ active, children, onClick, icon = null }) {
         'rounded-full border px-4 py-2.5 text-sm font-medium transition whitespace-nowrap',
         active
           ? 'border-cyan-100/70 bg-[#63dff5] text-black shadow-[0_0_16px_rgba(99,223,245,0.22)]'
-          : 'border-white/20 bg-[rgba(8,18,42,0.74)] text-white/92 hover:bg-[rgba(12,27,58,0.88)]',
+          : 'border-white/20 bg-[rgba(8,18,42,0.84)] text-white/92 hover:bg-[rgba(12,27,58,0.96)]',
       ].join(' ')}
     >
       <span className="flex items-center gap-2">
@@ -142,7 +142,7 @@ function TopActionButton({ href, children, primary = false }) {
         'rounded-2xl border px-4 py-2.5 text-sm font-semibold transition',
         primary
           ? 'border-cyan-200/60 bg-cyan-400 text-black hover:brightness-110'
-          : 'border-white/15 bg-[rgba(8,18,42,0.74)] text-white hover:bg-[rgba(12,27,58,0.88)]',
+          : 'border-white/15 bg-[rgba(8,18,42,0.84)] text-white hover:bg-[rgba(12,27,58,0.96)]',
       ].join(' ')}
     >
       {children}
@@ -158,7 +158,7 @@ function ListingCard({ item }) {
   return (
     <div
       className={[
-        'overflow-hidden rounded-[24px] border bg-[#071224]/88 backdrop-blur-sm',
+        'overflow-hidden rounded-[24px] border bg-[#071224]',
         featured
           ? 'border-[#f0b13c] shadow-[0_0_0_1px_rgba(240,177,60,0.22),0_0_22px_rgba(240,177,60,0.14)]'
           : 'border-white/10 shadow-[0_10px_24px_rgba(0,0,0,0.20)]',
@@ -311,17 +311,16 @@ export default function Page() {
           <div className="flex flex-wrap gap-2">
             <TopActionButton href="/" primary>Home</TopActionButton>
             <TopActionButton href="/submit">Submit Listing</TopActionButton>
-            <TopActionButton href="/admin">Admin</TopActionButton>
           </div>
         </div>
 
-        <div className="mb-6 rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.62)] p-4 backdrop-blur-md">
+        <div className="mb-6 rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.78)] p-4 backdrop-blur-md">
           <input
             type="text"
             placeholder="Search events, venues, food, music..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="mb-4 w-full rounded-2xl border border-white/15 bg-[#08142b]/88 px-4 py-3 text-white outline-none placeholder:text-white/40"
+            className="mb-4 w-full rounded-2xl border border-white/15 bg-[#08142b] px-4 py-3 text-white outline-none placeholder:text-white/40"
           />
 
           <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
@@ -353,8 +352,9 @@ export default function Page() {
         {featuredListings.length > 0 && (
           <section className="mb-8">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Featured</h2>
-              <span className="text-sm text-white/60">{featuredListings.length}</span>
+              <h2 className="text-xl font-bold text-white">
+                Featured ({featuredListings.length})
+              </h2>
             </div>
 
             <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
@@ -379,11 +379,11 @@ export default function Page() {
           </div>
 
           {loading ? (
-            <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.62)] p-6 text-white/70">
+            <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.78)] p-6 text-white/70">
               Loading listings...
             </div>
           ) : filteredListings.length === 0 ? (
-            <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.62)] p-6 text-white/70">
+            <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.78)] p-6 text-white/70">
               No listings found.
             </div>
           ) : (
