@@ -12,9 +12,9 @@ body {
 }
 
 body {
-  background-image:
-    linear-gradient(rgba(1, 10, 28, 0.28), rgba(1, 10, 28, 0.48)),
-    url('/background3.png');
+  background:
+    linear-gradient(rgba(1, 10, 28, 0.12), rgba(1, 10, 28, 0.28)),
+    url('/homebg.png');
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
