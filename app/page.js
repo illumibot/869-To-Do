@@ -206,7 +206,7 @@ function ListingCard({ item, compact = false }) {
           <p>{getLocation(item)}</p>
         </div>
 
-        <p className="line-clamp-3 text-sm text-white/70">
+       <p className={`${compact ? 'line-clamp-2' : 'line-clamp-3'} text-sm text-white/70`}>
           {getDescription(item)}
         </p>
 
