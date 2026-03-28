@@ -164,7 +164,7 @@ function ListingCard({ item, compact = false }) {
           : 'border-white/10 shadow-[0_10px_24px_rgba(0,0,0,0.20)]',
       ].join(' ')}
     >
-      <div className={`relative ${compact ? 'h-36' : 'h-52'} bg-slate-900`}>
+      <div className={`relative ${compact ? 'h-40' : 'h-52'} bg-slate-900`}>
         {featured && (
           <div className="absolute left-4 top-4 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-extrabold text-black">
             FEATURED
@@ -197,7 +197,7 @@ function ListingCard({ item, compact = false }) {
           </span>
         </div>
 
-        <h3 className={`${compact ? 'text-lg' : 'text-2xl'} font-semibold text-white`}>
+        <h3 className={`${compact ? 'text-xl' : 'text-2xl'} font-semibold text-white`}>
           {getTitle(item)}
         </h3>
 
@@ -206,7 +206,7 @@ function ListingCard({ item, compact = false }) {
           <p>{getLocation(item)}</p>
         </div>
 
-        <p className="line-clamp-2 text-sm text-white/70">
+        <p className="line-clamp-3 text-sm text-white/70">
           {getDescription(item)}
         </p>
 
@@ -352,8 +352,8 @@ export default function Page() {
         </div>
 
         {featuredListings.length > 0 && (
-          <section className="sticky top-2 z-20 mb-6 rounded-[28px] bg-[#020617]/95 pb-3 pt-2 backdrop-blur-md">
-            <div className="mb-3 flex items-center justify-between px-4">
+          <section className="mb-6">
+            <div className="mb-3 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">
                 Featured ({featuredListings.length})
               </h2>
