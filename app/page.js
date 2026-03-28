@@ -4,8 +4,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-const background3 = '/background3.png';
-
 function getTitle(item) {
   return item.title || item.name || item.event_name || 'Untitled Listing';
 }
@@ -100,7 +98,7 @@ function ListingCard({ item }) {
   return (
     <div
       className={[
-        'overflow-hidden rounded-[24px] border bg-[#071224]',
+        'overflow-hidden rounded-[24px] border bg-[#071224]/88 backdrop-blur-sm',
         featured
           ? 'border-[#f0b13c] shadow-[0_0_0_1px_rgba(240,177,60,0.22),0_0_22px_rgba(240,177,60,0.14)]'
           : 'border-white/10 shadow-[0_10px_24px_rgba(0,0,0,0.20)]',
@@ -146,7 +144,7 @@ function ListingCard({ item }) {
           <p>{getLocation(item)}</p>
         </div>
 
-        <p className="text-sm text-white/70 line-clamp-3">
+        <p className="line-clamp-3 text-sm text-white/70">
           {getDescription(item)}
         </p>
 
@@ -185,17 +183,18 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="relative min-h-screen text-white">
-      <div className="fixed inset-0 -z-20">
-        <img
-          src={background3}
-          alt=""
-          className="h-full w-full object-cover object-top"
-        />
-      </div>
-
-      <div className="fixed inset-0 -z-10 bg-[rgba(2,8,23,0.70)]" />
-
+    <div
+      className="min-h-screen text-white"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(1,10,28,0.58), rgba(1,10,28,0.72)), url('/background3.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        backgroundColor: '#020b18',
+      }}
+    >
       <main className="mx-auto max-w-6xl p-6">
         <h1 className="mb-6 text-4xl font-bold">869 To Do</h1>
 
