@@ -17,10 +17,11 @@ export default function AdminPage() {
     setLoading(true);
     setError('');
 
-    const { data, error } = await supabase
-      .from('listing_submissions')
-      .select('*')
-      .order('created_at', { ascending: false });
+   const { data, error } = await supabase
+  .from('listing_submissions')
+  .select('*')
+  .eq('approved', false)
+  .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error loading submissions:', error);
