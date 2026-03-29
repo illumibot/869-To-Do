@@ -20,6 +20,7 @@ export default function AdminPage() {
     const { data, error } = await supabase
       .from('listing_submissions')
       .select('*')
+      .eq('approved', false)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -56,37 +57,37 @@ export default function AdminPage() {
         item.price !== '' && item.price !== null && item.price !== undefined
           ? Number(item.price)
           : null,
+      approved: true,
+      is_approved: true,
       status: 'approved',
-      created_at: new Date().toISOString(),
     };
 
-    // 1. INSERT into listings
     const { error: insertError } = await supabase
       .from('listings')
       .insert([listingPayload]);
 
     if (insertError) {
-      console.error('Insert error:', insertError);
-      setError(`Insert failed: ${insertError.message}`);
+      console.error('Error approving submission:', insertError);
+      setError(`Could not approve submission: ${insertError.message}`);
       setProcessingId(null);
       return;
     }
 
-    // 2. DELETE submission (THIS FIXES YOUR PROBLEM)
-    const { error: deleteError } = await supabase
+    const { error: updateError } = await supabase
       .from('listing_submissions')
-      .delete()
+      .update({ approved: true })
       .eq('id', item.id);
 
-    if (deleteError) {
-      console.error('Delete error:', deleteError);
-      setError(`Delete failed: ${deleteError.message}`);
+    if (updateError) {
+      console.error('Approved, but could not mark submission approved:', updateError);
+      setError(
+        `Listing approved, but could not update submission status: ${updateError.message}`
+      );
       setProcessingId(null);
       return;
     }
 
-    // 3. Remove from UI
-    setSubmissions((prev) => prev.filter((s) => s.id !== item.id));
+    setSubmissions((prev) => prev.filter((submission) => submission.id !== item.id));
     setProcessingId(null);
   }
 
@@ -154,22 +155,77 @@ export default function AdminPage() {
                   key={item.id}
                   className="rounded-2xl border border-white/10 bg-white/6 backdrop-blur-sm p-4 md:p-5"
                 >
-                  <div className="flex flex-col gap-4 md:flex-row md:justify-between">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div className="flex-1">
                       <h2 className="text-xl font-semibold mb-3">
                         {item.title || 'Untitled Listing'}
                       </h2>
 
-                      <div className="text-sm text-white/80 mb-4">
-                        {item.description || 'No description'}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm text-white/80 mb-4">
+                        <p>
+                          <span className="text-white font-medium">Category:</span>{' '}
+                          {item.category || '—'}
+                        </p>
+                        <p>
+                          <span className="text-white font-medium">Island:</span>{' '}
+                          {item.island || '—'}
+                        </p>
+                        <p>
+                          <span className="text-white font-medium">Location:</span>{' '}
+                          {item.location || '—'}
+                        </p>
+                        <p>
+                          <span className="text-white font-medium">Phone:</span>{' '}
+                          {item.phone || '—'}
+                        </p>
+                        <p>
+                          <span className="text-white font-medium">Price:</span>{' '}
+                          {item.price ?? '—'}
+                        </p>
+                        <p>
+                          <span className="text-white font-medium">Start Date:</span>{' '}
+                          {item.start_date ? new Date(item.start_date).toLocaleString() : '—'}
+                        </p>
+                        <p>
+                          <span className="text-white font-medium">End Date:</span>{' '}
+                          {item.end_date
+                            ? new Date(item.end_date).toLocaleString()
+                            : 'Optional / none'}
+                        </p>
                       </div>
+
+                      <div className="mb-4">
+                        <span className="text-white font-medium block mb-2">Image:</span>
+                        {item.image_url ? (
+                          <a
+                            href={item.image_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block"
+                          >
+                            <img
+                              src={item.image_url}
+                              alt={item.title || 'Listing image'}
+                              className="w-40 h-28 object-cover rounded-lg border border-white/10 hover:opacity-90 transition"
+                            />
+                          </a>
+                        ) : (
+                          <span className="text-white/60">—</span>
+                        )}
+                      </div>
+
+                      {item.description ? (
+                        <div className="rounded-xl bg-white/5 border border-white/10 p-3 text-sm text-white/85 whitespace-pre-wrap">
+                          {item.description}
+                        </div>
+                      ) : null}
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-row md:flex-col gap-2 md:min-w-[160px]">
                       <button
                         onClick={() => approveSubmission(item)}
                         disabled={isProcessing}
-                        className="rounded-xl bg-green-600 hover:bg-green-500 px-4 py-2"
+                        className="flex-1 md:flex-none rounded-xl bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 font-medium transition"
                       >
                         {isProcessing ? 'Processing...' : 'Approve'}
                       </button>
@@ -177,7 +233,7 @@ export default function AdminPage() {
                       <button
                         onClick={() => deleteSubmission(item.id)}
                         disabled={isProcessing}
-                        className="rounded-xl bg-red-600 hover:bg-red-500 px-4 py-2"
+                        className="flex-1 md:flex-none rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 font-medium transition"
                       >
                         Delete
                       </button>
