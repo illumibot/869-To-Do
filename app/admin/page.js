@@ -20,7 +20,6 @@ export default function AdminPage() {
     const { data, error } = await supabase
       .from('listing_submissions')
       .select('*')
-      .eq('approved', false)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -50,8 +49,8 @@ export default function AdminPage() {
       venue_name: item.location || item.venue_name || '',
       start_date: item.start_date || null,
       end_date: item.end_date || null,
-      start_time: item.start_date || null,
-      end_time: item.end_date || null,
+      start_time: item.start_time || item.start_date || null,
+      end_time: item.end_time || item.end_date || null,
       phone: item.phone || '',
       price:
         item.price !== '' && item.price !== null && item.price !== undefined
@@ -60,6 +59,7 @@ export default function AdminPage() {
       approved: true,
       is_approved: true,
       status: 'approved',
+      created_at: new Date().toISOString(),
     };
 
     const { error: insertError } = await supabase
@@ -67,21 +67,21 @@ export default function AdminPage() {
       .insert([listingPayload]);
 
     if (insertError) {
-      console.error('Error approving submission:', insertError);
+      console.error('Error inserting listing:', insertError);
       setError(`Could not approve submission: ${insertError.message}`);
       setProcessingId(null);
       return;
     }
 
-    const { error: updateError } = await supabase
+    const { error: deleteError } = await supabase
       .from('listing_submissions')
-      .update({ approved: true })
+      .delete()
       .eq('id', item.id);
 
-    if (updateError) {
-      console.error('Approved, but could not mark submission approved:', updateError);
+    if (deleteError) {
+      console.error('Listing inserted, but submission delete failed:', deleteError);
       setError(
-        `Listing approved, but could not update submission status: ${updateError.message}`
+        `Listing was added, but the submission could not be removed: ${deleteError.message}`
       );
       setProcessingId(null);
       return;
