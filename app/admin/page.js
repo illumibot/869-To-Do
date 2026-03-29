@@ -31,38 +31,39 @@ export default function AdminPage() {
     loadSubmissions();
   }, []);
 
-  async function approveListing(item) {
-    const { error } = await supabase.from('listings').insert([
-     {
-  title: item.title || '',
-  description: item.description || '',
-  category: item.category || 'Other',
-  island: item.island || 'St. Kitts',
-  image_url: item.image_url || '',
-  venue_name: item.location || item.title || 'Location TBA',
-  start_time: item.start_date || new Date().toISOString(),
-},
-    ]);
+ async function approveListing(item) {
+  const { error } = await supabase.from('listings').insert([
+    {
+      title: item.title || '',
+      description: item.description || '',
+      category: item.category || 'Other',
+      island: item.island || 'St. Kitts',
+      price: item.price ?? null,
+      image_url: item.image_url || '',
+      venue_name: item.location || item.title || 'Location TBA',
+      start_time: item.start_date || new Date().toISOString(),
+    },
+  ]);
 
-    if (error) {
-      console.error('Approve listing error:', error);
-      alert(`Error approving listing: ${error.message}`);
-      return;
-    }
-
-    const { error: deleteError } = await supabase
-      .from('listing_submissions')
-      .delete()
-      .eq('id', item.id);
-
-    if (deleteError) {
-      console.error('Delete submission error:', deleteError);
-      alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
-    }
-
-    setApprovedIds((prev) => [...prev, item.id]);
-    loadSubmissions();
+  if (error) {
+    console.error('Approve listing error:', error);
+    alert(`Error approving listing: ${error.message}`);
+    return;
   }
+
+  const { error: deleteError } = await supabase
+    .from('listing_submissions')
+    .delete()
+    .eq('id', item.id);
+
+  if (deleteError) {
+    console.error('Delete submission error:', deleteError);
+    alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
+  }
+
+  setApprovedIds((prev) => [...prev, item.id]);
+  loadSubmissions();
+}
 
   return (
     <main className="min-h-screen bg-slate-950 p-6 text-white">
