@@ -24,7 +24,7 @@ export default function AdminPage() {
 
     if (error) {
       console.error('Error loading submissions:', error);
-      setError('Could not load submissions.');
+      setError(`Could not load submissions: ${error.message}`);
       setSubmissions([]);
     } else {
       setSubmissions(data || []);
@@ -47,23 +47,25 @@ export default function AdminPage() {
       image_url: item.image_url || '',
       location: item.location || '',
       start_date: item.start_date || null,
-      end_date: item.end_date || null, // stays optional
+      end_date: item.end_date || null,
       phone: item.phone || '',
-      price: item.price !== '' && item.price !== null && item.price !== undefined
-        ? Number(item.price)
-        : null,
+      price:
+        item.price !== '' && item.price !== null && item.price !== undefined
+          ? Number(item.price)
+          : null,
     };
 
     const { error: insertError } = await supabase
       .from('listings')
       .insert([listingPayload]);
 
-   if (insertError) {
-  console.error('Error approving submission:', insertError);
-  setError(`Could not approve submission: ${insertError.message}`);
-  setProcessingId(null);
-  return;
-}
+    if (insertError) {
+      console.error('Error approving submission:', insertError);
+      setError(`Could not approve submission: ${insertError.message}`);
+      setProcessingId(null);
+      return;
+    }
+
     const { error: deleteError } = await supabase
       .from('listing_submissions')
       .delete()
@@ -71,12 +73,13 @@ export default function AdminPage() {
 
     if (deleteError) {
       console.error('Approved, but could not remove submission:', deleteError);
-      setError('Listing approved, but the old submission could not be removed from the queue.');
+      setError(
+        `Listing approved, but could not remove pending submission: ${deleteError.message}`
+      );
       setProcessingId(null);
       return;
     }
 
-    // Remove it from the admin page immediately
     setSubmissions((prev) => prev.filter((submission) => submission.id !== item.id));
     setProcessingId(null);
   }
@@ -97,7 +100,7 @@ export default function AdminPage() {
 
     if (error) {
       console.error('Error deleting submission:', error);
-      setError('Could not delete submission.');
+      setError(`Could not delete submission: ${error.message}`);
       setProcessingId(null);
       return;
     }
@@ -147,17 +150,31 @@ export default function AdminPage() {
                 >
                   <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div className="flex-1">
-                      <h2 className="text-xl font-semibold mb-2">
+                      <h2 className="text-xl font-semibold mb-3">
                         {item.title || 'Untitled Listing'}
                       </h2>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-white/80 mb-3">
-                        <p><span className="text-white font-medium">Category:</span> {item.category || '—'}</p>
-                        <p><span className="text-white font-medium">Island:</span> {item.island || '—'}</p>
-                        <p><span className="text-white font-medium">Location:</span> {item.location || '—'}</p>
-                        <p><span className="text-white font-medium">Phone:</span> {item.phone || '—'}</p>
-                        <p><span className="text-white font-medium">Price:</span> {item.price ?? '—'}</p>
-                        <p><span className="text-white font-medium">Image URL:</span> {item.image_url || '—'}</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm text-white/80 mb-4">
+                        <p>
+                          <span className="text-white font-medium">Category:</span>{' '}
+                          {item.category || '—'}
+                        </p>
+                        <p>
+                          <span className="text-white font-medium">Island:</span>{' '}
+                          {item.island || '—'}
+                        </p>
+                        <p>
+                          <span className="text-white font-medium">Location:</span>{' '}
+                          {item.location || '—'}
+                        </p>
+                        <p>
+                          <span className="text-white font-medium">Phone:</span>{' '}
+                          {item.phone || '—'}
+                        </p>
+                        <p>
+                          <span className="text-white font-medium">Price:</span>{' '}
+                          {item.price ?? '—'}
+                        </p>
                         <p>
                           <span className="text-white font-medium">Start Date:</span>{' '}
                           {item.start_date ? new Date(item.start_date).toLocaleString() : '—'}
@@ -166,6 +183,26 @@ export default function AdminPage() {
                           <span className="text-white font-medium">End Date:</span>{' '}
                           {item.end_date ? new Date(item.end_date).toLocaleString() : 'Optional / none'}
                         </p>
+                      </div>
+
+                      <div className="mb-4">
+                        <span className="text-white font-medium block mb-2">Image:</span>
+                        {item.image_url ? (
+                          <a
+                            href={item.image_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block"
+                          >
+                            <img
+                              src={item.image_url}
+                              alt={item.title || 'Listing image'}
+                              className="w-40 h-28 object-cover rounded-lg border border-white/10 hover:opacity-90 transition"
+                            />
+                          </a>
+                        ) : (
+                          <span className="text-white/60">—</span>
+                        )}
                       </div>
 
                       {item.description ? (
