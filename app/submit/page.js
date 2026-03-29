@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
 const categoryOptions = [
@@ -26,8 +26,31 @@ const initialForm = {
   description: '',
   image_url: '',
   start_date: '',
+  end_date: '',
+  phone: '',
   price: '',
 };
+
+function normalizePhoneNumber(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+
+  if (!digits) return '';
+
+  // User enters just 7-digit local number
+  if (digits.length === 7) return `1869${digits}`;
+
+  // User enters 869 + 7 digits
+  if (digits.length === 10 && digits.startsWith('869')) return `1${digits}`;
+
+  // User enters full 1 + 869 + 7 digits
+  if (digits.length === 11 && digits.startsWith('1869')) return digits;
+
+  // User enters full international with other format
+  if (digits.length >= 11) return digits;
+
+  // fallback
+  return digits;
+}
 
 export default function SubmitPage() {
   const [form, setForm] = useState(initialForm);
@@ -36,11 +59,27 @@ export default function SubmitPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
+  const startDateRef = useRef(null);
+  const endDateRef = useRef(null);
+
   function updateField(name, value) {
     setForm((prev) => ({
       ...prev,
       [name]: value,
     }));
+  }
+
+  function openNativePicker(ref) {
+    const input = ref.current;
+    if (!input) return;
+
+    input.focus();
+
+    if (typeof input.showPicker === 'function') {
+      try {
+        input.showPicker();
+      } catch {}
+    }
   }
 
   async function handleImageUpload(e) {
@@ -79,8 +118,10 @@ export default function SubmitPage() {
 
     const payload = {
       ...form,
+      phone: form.phone ? normalizePhoneNumber(form.phone) : null,
       price: form.price === '' ? null : Number(form.price),
       start_date: form.start_date || null,
+      end_date: form.end_date || null,
       status: 'pending',
     };
 
@@ -98,13 +139,11 @@ export default function SubmitPage() {
   }
 
   return (
-    <main className="min-h-screen text-white px-4 py-10">
+    <main className="min-h-screen px-4 py-10 text-white">
       <div className="mx-auto max-w-xl">
-
-        {/* HEADER */}
         <div className="mb-6">
           <p className="text-sm text-cyan-300/80">869 To Do</p>
-          <h1 className="text-3xl font-bold">Submit a Listing</h1>
+          <h1 className="text-3xl font-bold">🇰🇳 Submit a Listing</h1>
         </div>
 
         <Link
@@ -114,14 +153,12 @@ export default function SubmitPage() {
           Back
         </Link>
 
-        {/* INTRO */}
-        <p className="mt-6 mb-6 text-sm text-white/75">
+        <p className="mb-6 mt-6 text-sm text-white/75">
           Submit an event, food listing, live music, tour, promotion, or other listing.
           Submissions do not go live automatically.
         </p>
 
-        {/* FEATURED */}
-        <div className="mb-6 rounded-xl border border-amber-400/30 bg-black/40 backdrop-blur-md px-4 py-3 text-sm text-amber-200">
+        <div className="mb-6 rounded-xl border border-amber-400/30 bg-black/40 px-4 py-3 text-sm text-amber-200 backdrop-blur-md">
           Want a featured listing? Featured placement is arranged separately. Contact us at{' '}
           <a
             href="mailto:info@869todo.com"
@@ -132,16 +169,14 @@ export default function SubmitPage() {
           .
         </div>
 
-        {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-4">
-
           <input
             name="title"
             placeholder="Title"
             value={form.title}
             onChange={(e) => updateField('title', e.target.value)}
             required
-            className="w-full rounded-xl bg-black/60 border border-white/30 px-4 py-3 text-white placeholder-white/60 backdrop-blur-md focus:border-cyan-400"
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white placeholder-white/60 backdrop-blur-md focus:border-cyan-400 focus:outline-none"
           />
 
           <textarea
@@ -150,14 +185,14 @@ export default function SubmitPage() {
             value={form.description}
             onChange={(e) => updateField('description', e.target.value)}
             rows={3}
-            className="w-full rounded-xl bg-black/60 border border-white/30 px-4 py-3 text-white placeholder-white/60 backdrop-blur-md focus:border-cyan-400"
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white placeholder-white/60 backdrop-blur-md focus:border-cyan-400 focus:outline-none"
           />
 
           <select
             name="category"
             value={form.category}
             onChange={(e) => updateField('category', e.target.value)}
-            className="w-full rounded-xl bg-black/60 border border-white/30 px-4 py-3 text-white focus:border-cyan-400"
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
           >
             {categoryOptions.map((opt) => (
               <option key={opt}>{opt}</option>
@@ -168,7 +203,7 @@ export default function SubmitPage() {
             name="island"
             value={form.island}
             onChange={(e) => updateField('island', e.target.value)}
-            className="w-full rounded-xl bg-black/60 border border-white/30 px-4 py-3 text-white focus:border-cyan-400"
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
           >
             {islandOptions.map((opt) => (
               <option key={opt}>{opt}</option>
@@ -180,12 +215,31 @@ export default function SubmitPage() {
             placeholder="Location"
             value={form.location}
             onChange={(e) => updateField('location', e.target.value)}
-            className="w-full rounded-xl bg-black/60 border border-white/30 px-4 py-3 text-white placeholder-white/60 backdrop-blur-md focus:border-cyan-400"
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white placeholder-white/60 backdrop-blur-md focus:border-cyan-400 focus:outline-none"
           />
 
-          {/* IMAGE UPLOAD */}
           <div>
-            <label className="text-sm text-white/70 mb-1 block">Upload Image</label>
+            <label className="mb-1 block text-sm text-white/70">Phone Number</label>
+            <div className="flex overflow-hidden rounded-xl border border-white/30 bg-black/60 backdrop-blur-md focus-within:border-cyan-400">
+              <div className="flex items-center border-r border-white/20 px-4 text-white/70">
+                +1 869
+              </div>
+              <input
+                type="tel"
+                name="phone"
+                placeholder="555 1234"
+                value={form.phone}
+                onChange={(e) => updateField('phone', e.target.value)}
+                className="w-full bg-transparent px-4 py-3 text-white placeholder-white/50 focus:outline-none"
+              />
+            </div>
+            <p className="mt-1 text-xs text-white/50">
+              Users can enter just the local 7-digit number. The 869 area code will be added automatically.
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm text-white/70">Upload Image</label>
             <input
               type="file"
               accept="image/*"
@@ -193,23 +247,44 @@ export default function SubmitPage() {
               className="w-full text-sm"
             />
             {uploadingImage && (
-              <p className="text-sm text-cyan-300 mt-2">Uploading...</p>
+              <p className="mt-2 text-sm text-cyan-300">Uploading...</p>
             )}
             {form.image_url && (
               <img
                 src={form.image_url}
-                className="mt-3 rounded-xl max-h-60 object-cover"
+                alt="Preview"
+                className="mt-3 max-h-60 rounded-xl object-cover"
               />
             )}
           </div>
 
-          <input
-            type="datetime-local"
-            name="start_date"
-            value={form.start_date}
-            onChange={(e) => updateField('start_date', e.target.value)}
-            className="w-full rounded-xl bg-black/60 border border-white/30 px-4 py-3 text-white focus:border-cyan-400"
-          />
+          <div>
+            <label className="mb-1 block text-sm text-white/70">Start Date & Time</label>
+            <input
+              ref={startDateRef}
+              type="datetime-local"
+              name="start_date"
+              value={form.start_date}
+              onChange={(e) => updateField('start_date', e.target.value)}
+              onFocus={() => openNativePicker(startDateRef)}
+              onClick={() => openNativePicker(startDateRef)}
+              className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm text-white/70">End Date & Time</label>
+            <input
+              ref={endDateRef}
+              type="datetime-local"
+              name="end_date"
+              value={form.end_date}
+              onChange={(e) => updateField('end_date', e.target.value)}
+              onFocus={() => openNativePicker(endDateRef)}
+              onClick={() => openNativePicker(endDateRef)}
+              className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+            />
+          </div>
 
           <input
             type="number"
@@ -217,24 +292,23 @@ export default function SubmitPage() {
             placeholder="Price (EC)"
             value={form.price}
             onChange={(e) => updateField('price', e.target.value)}
-            className="w-full rounded-xl bg-black/60 border border-white/30 px-4 py-3 text-white placeholder-white/60 focus:border-cyan-400"
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white placeholder-white/60 focus:border-cyan-400 focus:outline-none"
           />
 
           {message && (
-            <div className="text-green-400 text-sm">{message}</div>
+            <div className="text-sm text-green-400">{message}</div>
           )}
           {error && (
-            <div className="text-red-400 text-sm">{error}</div>
+            <div className="text-sm text-red-400">{error}</div>
           )}
 
           <button
             type="submit"
             disabled={loading || uploadingImage}
-            className="w-full rounded-xl bg-cyan-400 hover:bg-cyan-500 px-4 py-3 font-semibold text-black"
+            className="w-full rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-black hover:bg-cyan-500"
           >
             {loading ? 'Submitting...' : 'Submit Listing'}
           </button>
-
         </form>
       </div>
     </main>
