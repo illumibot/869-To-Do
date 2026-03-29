@@ -13,7 +13,7 @@ function formatDate(value) {
 export default function AdminPage() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [approvedIds, setApprovedIds] = useState([]);
+  const [processingId, setProcessingId] = useState(null);
 
   async function loadSubmissions() {
     setLoading(true);
@@ -39,32 +39,18 @@ export default function AdminPage() {
   }, []);
 
   async function approveListing(item) {
-    if (approvedIds.includes(item.id)) return;
+    if (processingId === item.id) return;
 
-    setApprovedIds((prev) => [...prev, item.id]);
+    setProcessingId(item.id);
 
     const listingPayload = {
       title: item.title || '',
       description: item.description || '',
       category: item.category || 'Other',
       island: item.island || 'St. Kitts',
-
-      // image
       image_url: item.image_url || '',
-
-      // location fields
-      location: item.location || '',
       venue_name: item.location || item.title || 'Location TBA',
-
-      // dates - save both naming styles so your current pages keep working
-      start_date: item.start_date || null,
-      end_date: item.end_date || null,
-      start_time: item.start_date || null,
-
-      // contact
-      phone: item.phone || null,
-
-      // price
+      start_time: item.start_date || new Date().toISOString(),
       price: item.price ?? null,
     };
 
@@ -73,7 +59,7 @@ export default function AdminPage() {
     if (error) {
       console.error('Approve listing error:', error);
       alert(`Error approving listing: ${error.message}`);
-      setApprovedIds((prev) => prev.filter((id) => id !== item.id));
+      setProcessingId(null);
       return;
     }
 
@@ -85,10 +71,12 @@ export default function AdminPage() {
     if (deleteError) {
       console.error('Delete submission error:', deleteError);
       alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
+      setProcessingId(null);
       return;
     }
 
     setSubmissions((prev) => prev.filter((submission) => submission.id !== item.id));
+    setProcessingId(null);
   }
 
   return (
@@ -163,14 +151,14 @@ export default function AdminPage() {
 
             <button
               onClick={() => approveListing(item)}
-              disabled={approvedIds.includes(item.id)}
+              disabled={processingId === item.id}
               className={`mt-4 rounded-lg px-4 py-2 font-medium ${
-                approvedIds.includes(item.id)
-                  ? 'cursor-not-allowed bg-red-500 text-white'
+                processingId === item.id
+                  ? 'cursor-not-allowed bg-white/20 text-white/70'
                   : 'bg-green-500 text-black'
               }`}
             >
-              {approvedIds.includes(item.id) ? 'Approved' : 'Approve'}
+              {processingId === item.id ? 'Approving...' : 'Approve'}
             </button>
           </div>
         ))}
