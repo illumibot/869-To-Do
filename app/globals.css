@@ -12,13 +12,11 @@ body {
 }
 
 body {
- background-image:
-  linear-gradient(rgba(1, 10, 28, 0.005), rgba(1, 10, 28, 0.02)),
-  url('/homebg.png');
-  background-repeat: no-repeat, no-repeat;
-  background-position: center top, center top;
-  background-size: cover, cover;
-  background-attachment: scroll, scroll;
+  background-image: url('/homebg.png');
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: cover;
+  background-attachment: scroll;
 }
 
 * {
