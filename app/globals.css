@@ -12,10 +12,10 @@ body {
   background-color: #020b18;
 }
 
-/* Default background */
+/* Default background (lighter overlay) */
 body {
   background:
-    linear-gradient(rgba(1, 10, 28, 0.28), rgba(1, 10, 28, 0.44)),
+    linear-gradient(rgba(1, 10, 28, 0.12), rgba(1, 10, 28, 0.25)),
     url('/homebg.png');
   background-size: cover;
   background-repeat: no-repeat;
@@ -27,7 +27,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Mobile portrait */
+/* Mobile portrait (your nice zoomed look) */
 @media (max-width: 767px) and (orientation: portrait) {
   body {
     background-size: auto 100vh;
@@ -35,28 +35,23 @@ body {
   }
 }
 
-/* Mobile landscape */
+/* Mobile landscape (restore visibility) */
 @media (max-width: 950px) and (orientation: landscape) {
   body {
+    background:
+      linear-gradient(rgba(1, 10, 28, 0.08), rgba(1, 10, 28, 0.18)),
+      url('/homebg.png');
     background-size: 100% auto;
     background-position: center center;
     background-repeat: no-repeat;
   }
 }
 
-/* Tablet portrait */
-@media (min-width: 768px) and (max-width: 1180px) and (orientation: portrait) {
+/* Tablet tuning */
+@media (min-width: 768px) and (max-width: 1366px) {
   body {
-    background-size: cover;
     background-position: center center;
-  }
-}
-
-/* Tablet landscape */
-@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
-  body {
     background-size: cover;
-    background-position: center center;
   }
 }
 
