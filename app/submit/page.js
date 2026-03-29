@@ -28,28 +28,27 @@ const initialForm = {
   start_date: '',
   end_date: '',
   phone: '',
+  area_code: '869',
   price: '',
 };
 
-function normalizePhoneNumber(value) {
-  const digits = String(value || '').replace(/\D/g, '');
+function normalizePhone(areaCode, phone) {
+  const cleanAreaCode = String(areaCode || '').replace(/\D/g, '');
+  const cleanPhone = String(phone || '').replace(/\D/g, '');
 
-  if (!digits) return '';
+  if (!cleanPhone) return null;
 
-  // User enters just 7-digit local number
-  if (digits.length === 7) return `1869${digits}`;
+  // If user pasted a full international number into phone field
+  if (cleanPhone.length >= 10 && (cleanPhone.startsWith('1') || cleanPhone.startsWith('44') || cleanPhone.startsWith('246') || cleanPhone.startsWith('784'))) {
+    return `+${cleanPhone}`;
+  }
 
-  // User enters 869 + 7 digits
-  if (digits.length === 10 && digits.startsWith('869')) return `1${digits}`;
+  // Standard NANP style: +1 + area code + local number
+  if (cleanAreaCode) {
+    return `+1${cleanAreaCode}${cleanPhone}`;
+  }
 
-  // User enters full 1 + 869 + 7 digits
-  if (digits.length === 11 && digits.startsWith('1869')) return digits;
-
-  // User enters full international with other format
-  if (digits.length >= 11) return digits;
-
-  // fallback
-  return digits;
+  return cleanPhone;
 }
 
 export default function SubmitPage() {
@@ -117,11 +116,16 @@ export default function SubmitPage() {
     setError('');
 
     const payload = {
-      ...form,
-      phone: form.phone ? normalizePhoneNumber(form.phone) : null,
-      price: form.price === '' ? null : Number(form.price),
+      title: form.title,
+      category: form.category,
+      island: form.island,
+      location: form.location,
+      description: form.description,
+      image_url: form.image_url,
       start_date: form.start_date || null,
       end_date: form.end_date || null,
+      phone: normalizePhone(form.area_code, form.phone),
+      price: form.price === '' ? null : Number(form.price),
       status: 'pending',
     };
 
@@ -220,21 +224,33 @@ export default function SubmitPage() {
 
           <div>
             <label className="mb-1 block text-sm text-white/70">Phone Number</label>
-            <div className="flex overflow-hidden rounded-xl border border-white/30 bg-black/60 backdrop-blur-md focus-within:border-cyan-400">
-              <div className="flex items-center border-r border-white/20 px-4 text-white/70">
-                +1 869
+            <div className="flex gap-2">
+              <div className="w-28 rounded-xl border border-white/30 bg-black/60 px-3 py-3 text-white backdrop-blur-md">
+                <div className="flex items-center gap-1">
+                  <span className="text-white/70">+1</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={3}
+                    value={form.area_code}
+                    onChange={(e) => updateField('area_code', e.target.value.replace(/\D/g, '').slice(0, 3))}
+                    className="w-full bg-transparent text-white focus:outline-none"
+                  />
+                </div>
               </div>
+
               <input
                 type="tel"
                 name="phone"
-                placeholder="555 1234"
+                placeholder="555 1234 or full number"
                 value={form.phone}
                 onChange={(e) => updateField('phone', e.target.value)}
-                className="w-full bg-transparent px-4 py-3 text-white placeholder-white/50 focus:outline-none"
+                className="flex-1 rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white placeholder-white/50 backdrop-blur-md focus:border-cyan-400 focus:outline-none"
               />
             </div>
+
             <p className="mt-1 text-xs text-white/50">
-              Users can enter just the local 7-digit number. The 869 area code will be added automatically.
+              Default area code is 869, but it can be changed.
             </p>
           </div>
 
@@ -298,6 +314,7 @@ export default function SubmitPage() {
           {message && (
             <div className="text-sm text-green-400">{message}</div>
           )}
+
           {error && (
             <div className="text-sm text-red-400">{error}</div>
           )}
