@@ -31,39 +31,44 @@ export default function AdminPage() {
     loadSubmissions();
   }, []);
 
-async function approveListing(item) {
-  const { error } = await supabase.from('listings').insert([
-    {
-      title: item.title || '',
-      description: item.description || '',
-      category: item.category || 'Other',
-      island: item.island || 'St. Kitts',
-      image_url: item.image_url || '',
-      venue_name: item.location || item.title || 'Location TBA',
-      start_time: item.start_date || new Date().toISOString(),
-      price: item.price ?? null,
-    },
-  ]);
+  async function approveListing(item) {
+    if (approvedIds.includes(item.id)) return;
 
-  if (error) {
-    console.error('Approve listing error:', error);
-    alert(`Error approving listing: ${error.message}`);
-    return;
+    setApprovedIds((prev) => [...prev, item.id]);
+
+    const { error } = await supabase.from('listings').insert([
+      {
+        title: item.title || '',
+        description: item.description || '',
+        category: item.category || 'Other',
+        island: item.island || 'St. Kitts',
+        image_url: item.image_url || '',
+        venue_name: item.location || item.title || 'Location TBA',
+        start_time: item.start_date || new Date().toISOString(),
+        price: item.price ?? null,
+      },
+    ]);
+
+    if (error) {
+      console.error('Approve listing error:', error);
+      alert(`Error approving listing: ${error.message}`);
+      setApprovedIds((prev) => prev.filter((id) => id !== item.id));
+      return;
+    }
+
+    const { error: deleteError } = await supabase
+      .from('listing_submissions')
+      .delete()
+      .eq('id', item.id);
+
+    if (deleteError) {
+      console.error('Delete submission error:', deleteError);
+      alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
+      return;
+    }
+
+    setSubmissions((prev) => prev.filter((submission) => submission.id !== item.id));
   }
-
-  const { error: deleteError } = await supabase
-    .from('listing_submissions')
-    .delete()
-    .eq('id', item.id);
-
-  if (deleteError) {
-    console.error('Delete submission error:', deleteError);
-    alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
-  }
-
-  setApprovedIds((prev) => [...prev, item.id]);
-  loadSubmissions();
-}
 
   return (
     <main className="min-h-screen bg-slate-950 p-6 text-white">
@@ -95,11 +100,13 @@ async function approveListing(item) {
                   {item.category}
                 </span>
               )}
+
               {item.island && (
                 <span className="rounded-full bg-white/10 px-3 py-1 text-white/75">
                   {item.island}
                 </span>
               )}
+
               {item.price !== null && item.price !== '' && item.price !== undefined && (
                 <span className="rounded-full bg-white/10 px-3 py-1 text-white/75">
                   EC${Number(item.price).toFixed(0)}
