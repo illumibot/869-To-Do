@@ -17,11 +17,11 @@ export default function AdminPage() {
     setLoading(true);
     setError('');
 
-   const { data, error } = await supabase
-  .from('listing_submissions')
-  .select('*')
-  .eq('approved', false)
-  .order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('listing_submissions')
+      .select('*')
+      .eq('approved', false)
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error loading submissions:', error);
@@ -57,6 +57,9 @@ export default function AdminPage() {
         item.price !== '' && item.price !== null && item.price !== undefined
           ? Number(item.price)
           : null,
+      approved: true,
+      is_approved: true,
+      status: 'approved',
     };
 
     const { error: insertError } = await supabase
@@ -70,15 +73,15 @@ export default function AdminPage() {
       return;
     }
 
-    const { error: deleteError } = await supabase
+    const { error: updateError } = await supabase
       .from('listing_submissions')
-      .delete()
+      .update({ approved: true })
       .eq('id', item.id);
 
-    if (deleteError) {
-      console.error('Approved, but could not remove submission:', deleteError);
+    if (updateError) {
+      console.error('Approved, but could not mark submission approved:', updateError);
       setError(
-        `Listing approved, but could not remove pending submission: ${deleteError.message}`
+        `Listing approved, but could not update submission status: ${updateError.message}`
       );
       setProcessingId(null);
       return;
@@ -185,7 +188,9 @@ export default function AdminPage() {
                         </p>
                         <p>
                           <span className="text-white font-medium">End Date:</span>{' '}
-                          {item.end_date ? new Date(item.end_date).toLocaleString() : 'Optional / none'}
+                          {item.end_date
+                            ? new Date(item.end_date).toLocaleString()
+                            : 'Optional / none'}
                         </p>
                       </div>
 
