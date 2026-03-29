@@ -31,14 +31,13 @@ export default function AdminPage() {
     loadSubmissions();
   }, []);
 
- async function approveListing(item) {
+async function approveListing(item) {
   const { error } = await supabase.from('listings').insert([
     {
       title: item.title || '',
       description: item.description || '',
       category: item.category || 'Other',
       island: item.island || 'St. Kitts',
-      price: item.price ?? null,
       image_url: item.image_url || '',
       venue_name: item.location || item.title || 'Location TBA',
       start_time: item.start_date || new Date().toISOString(),
