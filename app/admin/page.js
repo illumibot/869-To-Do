@@ -3,6 +3,13 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
+function formatDate(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString();
+}
+
 export default function AdminPage() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,18 +43,32 @@ export default function AdminPage() {
 
     setApprovedIds((prev) => [...prev, item.id]);
 
-    const { error } = await supabase.from('listings').insert([
-      {
-        title: item.title || '',
-        description: item.description || '',
-        category: item.category || 'Other',
-        island: item.island || 'St. Kitts',
-        image_url: item.image_url || '',
-        venue_name: item.location || item.title || 'Location TBA',
-        start_time: item.start_date || new Date().toISOString(),
-        price: item.price ?? null,
-      },
-    ]);
+    const listingPayload = {
+      title: item.title || '',
+      description: item.description || '',
+      category: item.category || 'Other',
+      island: item.island || 'St. Kitts',
+
+      // image
+      image_url: item.image_url || '',
+
+      // location fields
+      location: item.location || '',
+      venue_name: item.location || item.title || 'Location TBA',
+
+      // dates - save both naming styles so your current pages keep working
+      start_date: item.start_date || null,
+      end_date: item.end_date || null,
+      start_time: item.start_date || null,
+
+      // contact
+      phone: item.phone || null,
+
+      // price
+      price: item.price ?? null,
+    };
+
+    const { error } = await supabase.from('listings').insert([listingPayload]);
 
     if (error) {
       console.error('Approve listing error:', error);
@@ -84,7 +105,7 @@ export default function AdminPage() {
             key={item.id}
             className="rounded-xl border border-white/10 bg-white/5 p-4"
           >
-            <h2 className="text-lg font-bold">{item.title}</h2>
+            <h2 className="text-lg font-bold">{item.title || 'Untitled'}</h2>
 
             {item.location && (
               <p className="mt-1 text-sm text-white/60">{item.location}</p>
@@ -104,6 +125,24 @@ export default function AdminPage() {
               {item.island && (
                 <span className="rounded-full bg-white/10 px-3 py-1 text-white/75">
                   {item.island}
+                </span>
+              )}
+
+              {item.start_date && (
+                <span className="rounded-full bg-white/10 px-3 py-1 text-white/75">
+                  {formatDate(item.start_date)}
+                </span>
+              )}
+
+              {item.end_date && (
+                <span className="rounded-full bg-white/10 px-3 py-1 text-white/75">
+                  Ends: {formatDate(item.end_date)}
+                </span>
+              )}
+
+              {item.phone && (
+                <span className="rounded-full bg-white/10 px-3 py-1 text-white/75">
+                  {item.phone}
                 </span>
               )}
 
