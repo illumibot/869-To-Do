@@ -13,41 +13,41 @@ body {
 
 body {
   background-image:
-    linear-gradient(rgba(1, 10, 28, 0.04), rgba(1, 10, 28, 0.12)),
-    url('/homebg.png');
-  background-repeat: no-repeat, no-repeat;
-  background-position: center center, center center;
-  background-size: cover, cover;
-  background-attachment: scroll, scroll;
+    linear-gradient(rgba(1, 10, 28, 0.01), rgba(1, 10, 28, 0.06)),
+    url('/homebg.png') !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-position: center center, center center !important;
+  background-size: cover, cover !important;
+  background-attachment: scroll, scroll !important;
 }
 
 * {
   box-sizing: border-box;
 }
 
-/* Mobile portrait */
+/* Phone portrait */
 @media (max-width: 767px) and (orientation: portrait) {
   body {
     background-image:
-      linear-gradient(rgba(1, 10, 28, 0.03), rgba(1, 10, 28, 0.10)),
-      url('/homebg.png');
-    background-repeat: no-repeat, no-repeat;
-    background-position: center center, 68% top;
-    background-size: cover, auto 100vh;
-    background-attachment: scroll, scroll;
+      linear-gradient(rgba(1, 10, 28, 0.01), rgba(1, 10, 28, 0.05)),
+      url('/homebg.png') !important;
+    background-repeat: no-repeat, no-repeat !important;
+    background-position: center center, 68% top !important;
+    background-size: cover, auto 100vh !important;
+    background-attachment: scroll, scroll !important;
   }
 }
 
-/* Mobile landscape */
+/* Phone landscape */
 @media (max-width: 950px) and (orientation: landscape) {
   body {
     background-image:
-      linear-gradient(rgba(1, 10, 28, 0.02), rgba(1, 10, 28, 0.08)),
-      url('/homebg.png');
-    background-repeat: no-repeat, no-repeat;
-    background-position: center center, center center;
-    background-size: cover, 100% auto;
-    background-attachment: scroll, scroll;
+      linear-gradient(rgba(1, 10, 28, 0.00), rgba(1, 10, 28, 0.03)),
+      url('/homebg.png') !important;
+    background-repeat: no-repeat, no-repeat !important;
+    background-position: center center, center center !important;
+    background-size: cover, 100% auto !important;
+    background-attachment: scroll, scroll !important;
   }
 }
 
@@ -55,12 +55,12 @@ body {
 @media (min-width: 768px) and (max-width: 1366px) {
   body {
     background-image:
-      linear-gradient(rgba(1, 10, 28, 0.03), rgba(1, 10, 28, 0.10)),
-      url('/homebg.png');
-    background-repeat: no-repeat, no-repeat;
-    background-position: center center, center center;
-    background-size: cover, cover;
-    background-attachment: scroll, scroll;
+      linear-gradient(rgba(1, 10, 28, 0.01), rgba(1, 10, 28, 0.05)),
+      url('/homebg.png') !important;
+    background-repeat: no-repeat, no-repeat !important;
+    background-position: center center, center center !important;
+    background-size: cover, cover !important;
+    background-attachment: scroll, scroll !important;
   }
 }
 
