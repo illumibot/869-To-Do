@@ -58,13 +58,12 @@ export default function AdminPage() {
       .from('listings')
       .insert([listingPayload]);
 
-    if (insertError) {
-      console.error('Error approving submission:', insertError);
-      setError('Could not approve submission.');
-      setProcessingId(null);
-      return;
-    }
-
+   if (insertError) {
+  console.error('Error approving submission:', insertError);
+  setError(`Could not approve submission: ${insertError.message}`);
+  setProcessingId(null);
+  return;
+}
     const { error: deleteError } = await supabase
       .from('listing_submissions')
       .delete()
