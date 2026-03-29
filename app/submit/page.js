@@ -38,12 +38,22 @@ function normalizePhone(areaCode, phone) {
 
   if (!cleanPhone) return null;
 
-  // If user pasted a full international number into phone field
-  if (cleanPhone.length >= 10 && (cleanPhone.startsWith('1') || cleanPhone.startsWith('44') || cleanPhone.startsWith('246') || cleanPhone.startsWith('784'))) {
+  // If user pasted a full number beginning with country code
+  if (cleanPhone.length >= 11 && cleanPhone.startsWith('1')) {
     return `+${cleanPhone}`;
   }
 
-  // Standard NANP style: +1 + area code + local number
+  // If user entered 10 digits like 8695551234
+  if (cleanPhone.length === 10) {
+    return `+1${cleanPhone}`;
+  }
+
+  // Standard local number + selected area code
+  if (cleanPhone.length === 7 && cleanAreaCode) {
+    return `+1${cleanAreaCode}${cleanPhone}`;
+  }
+
+  // Fallback
   if (cleanAreaCode) {
     return `+1${cleanAreaCode}${cleanPhone}`;
   }
@@ -147,7 +157,10 @@ export default function SubmitPage() {
       <div className="mx-auto max-w-xl">
         <div className="mb-6">
           <p className="text-sm text-cyan-300/80">869 To Do</p>
-          <h1 className="text-3xl font-bold">🇰🇳 Submit a Listing</h1>
+          <h1 className="flex items-center gap-2 text-3xl font-bold">
+            <span>Submit a Listing</span>
+            <span>🇰🇳</span>
+          </h1>
         </div>
 
         <Link
@@ -233,7 +246,9 @@ export default function SubmitPage() {
                     inputMode="numeric"
                     maxLength={3}
                     value={form.area_code}
-                    onChange={(e) => updateField('area_code', e.target.value.replace(/\D/g, '').slice(0, 3))}
+                    onChange={(e) =>
+                      updateField('area_code', e.target.value.replace(/\D/g, '').slice(0, 3))
+                    }
                     className="w-full bg-transparent text-white focus:outline-none"
                   />
                 </div>
@@ -242,7 +257,7 @@ export default function SubmitPage() {
               <input
                 type="tel"
                 name="phone"
-                placeholder="555 1234 or full number"
+                placeholder="123 4567"
                 value={form.phone}
                 onChange={(e) => updateField('phone', e.target.value)}
                 className="flex-1 rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white placeholder-white/50 backdrop-blur-md focus:border-cyan-400 focus:outline-none"
@@ -250,7 +265,7 @@ export default function SubmitPage() {
             </div>
 
             <p className="mt-1 text-xs text-white/50">
-              Default area code is 869, but it can be changed.
+              Enter the 7-digit local number. Change the area code if needed.
             </p>
           </div>
 
