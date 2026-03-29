@@ -45,11 +45,7 @@ function formatPrice(value) {
   if (Number.isNaN(num)) return String(value);
   if (num === 0) return 'Free';
 
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(num);
+  return `EC$${num.toLocaleString()}`;
 }
 
 function getTitle(item) {
@@ -72,6 +68,10 @@ function getDate(item) {
   return item.date || item.event_date || item.starts_at || item.start_date || item.created_at;
 }
 
+function getEndDate(item) {
+  return item.end_date || item.ends_at || item.endtime || item.end || '';
+}
+
 function getPrice(item) {
   return item.price ?? item.cost ?? item.ticket_price ?? 0;
 }
@@ -89,6 +89,66 @@ function getImage(item) {
     item.thumbnail ||
     ''
   );
+}
+
+function getPhone(item) {
+  return item.phone || item.phone_number || item.contact_phone || item.whatsapp || '';
+}
+
+function cleanPhone(phone) {
+  return String(phone || '').replace(/[^\d+]/g, '');
+}
+
+function phoneDigitsOnly(phone) {
+  return String(phone || '').replace(/\D/g, '');
+}
+
+function formatPhone(phone) {
+  const digits = phoneDigitsOnly(phone);
+
+  if (!digits) return '';
+
+  if (digits.length === 11 && digits.startsWith('1')) {
+    const country = digits.slice(0, 1);
+    const area = digits.slice(1, 4);
+    const first = digits.slice(4, 7);
+    const last = digits.slice(7, 11);
+    return `+${country} (${area}) ${first}-${last}`;
+  }
+
+  if (digits.length === 10) {
+    const area = digits.slice(0, 3);
+    const first = digits.slice(3, 6);
+    const last = digits.slice(6, 10);
+    return `(${area}) ${first}-${last}`;
+  }
+
+  if (digits.length === 7) {
+    const first = digits.slice(0, 3);
+    const last = digits.slice(3, 7);
+    return `${first}-${last}`;
+  }
+
+  return String(phone);
+}
+
+function getWhatsAppLink(phone) {
+  const digits = phoneDigitsOnly(phone);
+  if (!digits) return '';
+
+  if (digits.startsWith('1')) {
+    return `https://wa.me/${digits}`;
+  }
+
+  if (digits.length === 10) {
+    return `https://wa.me/1${digits}`;
+  }
+
+  if (digits.length === 7) {
+    return `https://wa.me/1869${digits}`;
+  }
+
+  return `https://wa.me/${digits}`;
 }
 
 export default function ListingDetailPage({ params }) {
@@ -154,25 +214,31 @@ export default function ListingDetailPage({ params }) {
   const island = getIsland(listing);
   const location = getLocation(listing);
   const date = getDate(listing);
+  const endDate = getEndDate(listing);
   const price = getPrice(listing);
   const description = getDescription(listing);
   const image = getImage(listing);
+  const phone = getPhone(listing);
+  const formattedPhone = formatPhone(phone);
+  const telPhone = cleanPhone(phone);
+  const whatsappLink = getWhatsAppLink(phone);
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <div className="mx-auto max-w-4xl px-4 py-8">
-       <button
-  onClick={() => {
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      window.location.href = '/';
-    }
-  }}
-  className="mb-4 text-sm text-white/70 hover:text-white"
->
-  ← Back to listings
-</button>
+        <button
+          onClick={() => {
+            if (window.history.length > 1) {
+              window.history.back();
+            } else {
+              window.location.href = '/';
+            }
+          }}
+          className="mb-4 text-sm text-white/70 hover:text-white"
+        >
+          ← Back to listings
+        </button>
+
         <div className="mt-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5">
           <div className="h-72 w-full bg-white/5">
             {image ? (
@@ -201,7 +267,7 @@ export default function ListingDetailPage({ params }) {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-sm text-white/50">Date</p>
+                <p className="text-sm text-white/50">Start</p>
                 <p className="mt-1 text-lg font-medium">{formatDate(date)}</p>
               </div>
 
@@ -210,6 +276,37 @@ export default function ListingDetailPage({ params }) {
                 <p className="mt-1 text-lg font-medium">{formatPrice(price)}</p>
               </div>
             </div>
+
+            {endDate && (
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-sm text-white/50">End</p>
+                <p className="mt-1 text-lg font-medium">{formatDate(endDate)}</p>
+              </div>
+            )}
+
+            {phone && (
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-sm text-white/50">Contact</p>
+
+                <div className="mt-3 flex flex-wrap gap-3">
+                  <a
+                    href={`tel:${telPhone}`}
+                    className="inline-flex items-center rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-black hover:bg-cyan-300"
+                  >
+                    Call {formattedPhone}
+                  </a>
+
+                  <a
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center rounded-xl border border-green-400/40 bg-green-500/15 px-4 py-3 font-semibold text-green-300 hover:bg-green-500/25"
+                  >
+                    WhatsApp
+                  </a>
+                </div>
+              </div>
+            )}
 
             <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
               <p className="text-sm text-white/50">About this event</p>
