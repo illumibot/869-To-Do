@@ -33,16 +33,15 @@ export default function AdminPage() {
 
   async function approveListing(item) {
     const { error } = await supabase.from('listings').insert([
-      {
-        title: item.title || '',
-        description: item.description || '',
-        category: item.category || 'Other',
-        island: item.island || 'St. Kitts',
-        location: item.location || '',
-        image_url: item.image_url || '',
-        venue_name: item.location || item.title || 'Location TBA',
-        start_time: item.start_date || new Date().toISOString(),
-      },
+     {
+  title: item.title || '',
+  description: item.description || '',
+  category: item.category || 'Other',
+  island: item.island || 'St. Kitts',
+  image_url: item.image_url || '',
+  venue_name: item.location || item.title || 'Location TBA',
+  start_time: item.start_date || new Date().toISOString(),
+},
     ]);
 
     if (error) {
