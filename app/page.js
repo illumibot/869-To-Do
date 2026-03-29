@@ -70,6 +70,7 @@ export default function HomePage() {
     const { data, error } = await supabase
       .from('listings')
       .select('*')
+      .eq('status', 'approved')
       .or(`end_date.is.null,end_date.gte.${todayStr}`)
       .order('start_date', { ascending: true });
 
@@ -189,7 +190,7 @@ export default function HomePage() {
             {filteredListings.map((item) => (
               <div
                 key={item.id}
-                className="rounded-2xl border border-white/10 bg-white/6 backdrop-blur-sm overflow-hidden"
+                className="rounded-2xl border border-white/10 bg-white/6 backdrop-blur-sm overflow-hidden hover:border-cyan-400/40 transition"
               >
                 {item.image_url ? (
                   <img
