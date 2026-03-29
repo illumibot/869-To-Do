@@ -50,8 +50,8 @@ export default function AdminPage() {
       venue_name: item.location || item.venue_name || '',
       start_date: item.start_date || null,
       end_date: item.end_date || null,
-      start_time: item.start_time || item.start_date || null,
-      end_time: item.end_time || item.end_date || null,
+      start_time: item.start_date || null,
+      end_time: item.end_date || null,
       phone: item.phone || '',
       price:
         item.price !== '' && item.price !== null && item.price !== undefined
