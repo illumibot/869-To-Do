@@ -46,6 +46,7 @@ export default function AdminPage() {
       island: item.island || '',
       image_url: item.image_url || '',
       location: item.location || '',
+      venue_name: item.location || item.venue_name || '',
       start_date: item.start_date || null,
       end_date: item.end_date || null,
       phone: item.phone || '',
