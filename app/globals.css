@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base layout */
 html,
 body {
   margin: 0;
@@ -11,27 +12,55 @@ body {
   background-color: #020b18;
 }
 
+/* Default background */
 body {
   background:
-    linear-gradient(rgba(1, 10, 28, 0.18), rgba(1, 10, 28, 0.34)),
+    linear-gradient(rgba(1, 10, 28, 0.28), rgba(1, 10, 28, 0.44)),
     url('/homebg.png');
   background-size: cover;
   background-repeat: no-repeat;
+  background-position: center center;
   background-attachment: scroll;
-  background-position: center top;
 }
 
 * {
   box-sizing: border-box;
 }
 
-@media (max-width: 767px) {
+/* Mobile portrait */
+@media (max-width: 767px) and (orientation: portrait) {
   body {
     background-size: auto 100vh;
-    background-position: 72% top;
+    background-position: 68% top;
   }
 }
 
+/* Mobile landscape */
+@media (max-width: 950px) and (orientation: landscape) {
+  body {
+    background-size: 100% auto;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+}
+
+/* Tablet portrait */
+@media (min-width: 768px) and (max-width: 1180px) and (orientation: portrait) {
+  body {
+    background-size: cover;
+    background-position: center center;
+  }
+}
+
+/* Tablet landscape */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+  body {
+    background-size: cover;
+    background-position: center center;
+  }
+}
+
+/* Horizontal scroll snapping */
 .snap-x {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
@@ -41,6 +70,7 @@ body {
   scroll-snap-align: start;
 }
 
+/* Scrollbar styling */
 .snap-x::-webkit-scrollbar {
   height: 8px;
 }
