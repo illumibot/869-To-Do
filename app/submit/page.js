@@ -10,7 +10,6 @@ const categoryOptions = [
   'Music',
   'Tours',
   'Nightlife',
-  'Specials',
   'Wellness',
   'Family',
   'Sports',
@@ -41,6 +40,7 @@ const initialForm = {
 export default function SubmitPage() {
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -49,6 +49,36 @@ export default function SubmitPage() {
       ...prev,
       [name]: value,
     }));
+  }
+
+  async function handleImageUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setError('');
+    setMessage('');
+    setUploadingImage(true);
+
+    const safeName = file.name.replace(/\s+/g, '-').toLowerCase();
+    const fileName = `${Date.now()}-${safeName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('listing-images')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      setError(`Image upload failed: ${uploadError.message}`);
+      setUploadingImage(false);
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from('listing-images')
+      .getPublicUrl(fileName);
+
+    updateField('image_url', data.publicUrl);
+    setUploadingImage(false);
   }
 
   async function handleSubmit(e) {
@@ -67,12 +97,12 @@ export default function SubmitPage() {
 
     const { error } = await supabase.from('listing_submissions').insert([payload]);
 
-   if (error) {
-  console.error('Supabase insert error:', error);
-  setError(`Submission failed: ${error.message}`);
-  setLoading(false);
-  return;
-}
+    if (error) {
+      console.error('Supabase insert error:', error);
+      setError(`Submission failed: ${error.message}`);
+      setLoading(false);
+      return;
+    }
 
     setMessage('Thanks. Your listing was submitted for review.');
     setForm(initialForm);
@@ -98,7 +128,7 @@ export default function SubmitPage() {
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
           <p className="mb-6 text-sm text-white/65">
-            Submit an event, food special, live music, tour, promotion, or other listing.
+            Submit an event, food listing, live music, tour, promotion, or other listing.
             Submissions do not go live automatically.
           </p>
 
@@ -181,14 +211,23 @@ export default function SubmitPage() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm text-white/75">Image URL</label>
+              <label className="mb-2 block text-sm text-white/75">Upload Image</label>
               <input
-                type="url"
-                value={form.image_url}
-                onChange={(e) => updateField('image_url', e.target.value)}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
                 className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none"
-                placeholder="https://example.com/image.jpg"
               />
+              {uploadingImage && (
+                <p className="mt-2 text-sm text-cyan-300/80">Uploading image...</p>
+              )}
+              {form.image_url && (
+                <img
+                  src={form.image_url}
+                  alt="Preview"
+                  className="mt-3 max-h-64 w-full rounded-xl object-cover"
+                />
+              )}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -214,14 +253,14 @@ export default function SubmitPage() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm text-white/75">Price</label>
+              <label className="mb-2 block text-sm text-white/75">Price (EC$)</label>
               <input
                 type="number"
                 step="0.01"
                 value={form.price}
                 onChange={(e) => updateField('price', e.target.value)}
                 className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none"
-                placeholder="0 for free, or enter an amount"
+                placeholder="0 for free, or enter amount in EC dollars"
               />
             </div>
 
@@ -307,10 +346,10 @@ export default function SubmitPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || uploadingImage}
               className="rounded-xl bg-cyan-400 px-5 py-3 font-medium text-slate-950 disabled:opacity-60"
             >
-              {loading ? 'Submitting...' : 'Submit Listing'}
+              {loading ? 'Submitting...' : uploadingImage ? 'Uploading image...' : 'Submit Listing'}
             </button>
           </form>
         </div>
