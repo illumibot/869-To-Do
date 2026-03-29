@@ -36,7 +36,7 @@ body {
 /* Phone landscape */
 @media (max-width: 950px) and (orientation: landscape) {
   body {
-    background: url('/homebg.png') center top / cover no-repeat !important;
+    background: url('/homebg.png') center top / 100% auto no-repeat !important;
   }
 }
 
