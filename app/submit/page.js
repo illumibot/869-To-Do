@@ -289,32 +289,38 @@ export default function SubmitPage() {
             )}
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm text-white/70">Start Date & Time</label>
-            <input
-              ref={startDateRef}
-              type="datetime-local"
-              name="start_date"
-              value={form.start_date}
-              onChange={(e) => updateField('start_date', e.target.value)}
-              onFocus={() => openNativePicker(startDateRef)}
-              onClick={() => openNativePicker(startDateRef)}
-              className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-            />
-          </div>
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="mb-1 block text-sm text-white/70">
+                Start Date & Time
+              </label>
+              <input
+                ref={startDateRef}
+                type="datetime-local"
+                name="start_date"
+                value={form.start_date}
+                onChange={(e) => updateField('start_date', e.target.value)}
+                onFocus={() => openNativePicker(startDateRef)}
+                onClick={() => openNativePicker(startDateRef)}
+                className="w-full max-w-md rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+              />
+            </div>
 
-          <div>
-            <label className="mb-1 block text-sm text-white/70">End Date & Time</label>
-            <input
-              ref={endDateRef}
-              type="datetime-local"
-              name="end_date"
-              value={form.end_date}
-              onChange={(e) => updateField('end_date', e.target.value)}
-              onFocus={() => openNativePicker(endDateRef)}
-              onClick={() => openNativePicker(endDateRef)}
-              className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-            />
+            <div>
+              <label className="mb-1 block text-sm text-white/70">
+                End Date & Time (optional)
+              </label>
+              <input
+                ref={endDateRef}
+                type="datetime-local"
+                name="end_date"
+                value={form.end_date}
+                onChange={(e) => updateField('end_date', e.target.value)}
+                onFocus={() => openNativePicker(endDateRef)}
+                onClick={() => openNativePicker(endDateRef)}
+                className="w-full max-w-md rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+              />
+            </div>
           </div>
 
           <input
