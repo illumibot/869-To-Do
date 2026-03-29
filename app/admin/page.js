@@ -31,47 +31,39 @@ export default function AdminPage() {
     loadSubmissions();
   }, []);
 
-async function approveListing(item) {
-  const { error } = await supabase.from('listings').insert([
-    {
-      title: item.title,
-      description: item.description,
-      category: item.category,
+  async function approveListing(item) {
+    const { error } = await supabase.from('listings').insert([
+      {
+        title: item.title || '',
+        description: item.description || '',
+        category: item.category || 'Other',
+        island: item.island || 'St. Kitts',
+        location: item.location || '',
+        image_url: item.image_url || '',
+        venue_name: item.location || item.title || 'Location TBA',
+        start_time: item.start_date || new Date().toISOString(),
+      },
+    ]);
 
-      // ✅ ADD THESE (this fixes your app)
-      island: item.island,
-      location: item.location,
-      event_date: item.event_date,
-      image_url: item.image_url,
-      contact_name: item.contact_name,
-      contact_phone: item.contact_phone,
-      website_url: item.website_url,
+    if (error) {
+      console.error('Approve listing error:', error);
+      alert(`Error approving listing: ${error.message}`);
+      return;
+    }
 
-      // keep these
-      venue_name: item.location || item.title,
-      start_time: item.event_date || new Date().toISOString(),
-    },
-  ]);
+    const { error: deleteError } = await supabase
+      .from('listing_submissions')
+      .delete()
+      .eq('id', item.id);
 
-  if (error) {
-    console.error('Approve listing error:', error);
-    alert(`Error approving listing: ${error.message}`);
-    return;
+    if (deleteError) {
+      console.error('Delete submission error:', deleteError);
+      alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
+    }
+
+    setApprovedIds((prev) => [...prev, item.id]);
+    loadSubmissions();
   }
-
-  const { error: deleteError } = await supabase
-    .from('listing_submissions')
-    .delete()
-    .eq('id', item.id);
-
-  if (deleteError) {
-    console.error('Delete submission error:', deleteError);
-    alert(`Approved into listings, but failed to remove submission: ${deleteError.message}`);
-  }
-
-  setApprovedIds((prev) => [...prev, item.id]);
-  loadSubmissions();
-}
 
   return (
     <main className="min-h-screen bg-slate-950 p-6 text-white">
@@ -88,20 +80,52 @@ async function approveListing(item) {
             className="rounded-xl border border-white/10 bg-white/5 p-4"
           >
             <h2 className="text-lg font-bold">{item.title}</h2>
-            <p className="mt-2 text-sm text-white/70">{item.description}</p>
-            <p className="mt-2 text-xs text-cyan-300">{item.category}</p>
 
-        <button
-  onClick={() => approveListing(item)}
-  disabled={approvedIds.includes(item.id)}
-  className={`mt-4 rounded-lg px-4 py-2 font-medium ${
-    approvedIds.includes(item.id)
-      ? 'bg-red-500 text-white cursor-not-allowed'
-      : 'bg-green-500 text-black'
-  }`}
->
-  {approvedIds.includes(item.id) ? 'Approved' : 'Approve'}
-</button>
+            {item.location && (
+              <p className="mt-1 text-sm text-white/60">{item.location}</p>
+            )}
+
+            <p className="mt-2 text-sm text-white/70">
+              {item.description || 'No description'}
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              {item.category && (
+                <span className="rounded-full bg-cyan-500/15 px-3 py-1 text-cyan-300">
+                  {item.category}
+                </span>
+              )}
+              {item.island && (
+                <span className="rounded-full bg-white/10 px-3 py-1 text-white/75">
+                  {item.island}
+                </span>
+              )}
+              {item.price !== null && item.price !== '' && item.price !== undefined && (
+                <span className="rounded-full bg-white/10 px-3 py-1 text-white/75">
+                  EC${Number(item.price).toFixed(0)}
+                </span>
+              )}
+            </div>
+
+            {item.image_url && (
+              <img
+                src={item.image_url}
+                alt={item.title || 'Submission image'}
+                className="mt-4 max-h-64 w-full rounded-xl object-cover"
+              />
+            )}
+
+            <button
+              onClick={() => approveListing(item)}
+              disabled={approvedIds.includes(item.id)}
+              className={`mt-4 rounded-lg px-4 py-2 font-medium ${
+                approvedIds.includes(item.id)
+                  ? 'cursor-not-allowed bg-red-500 text-white'
+                  : 'bg-green-500 text-black'
+              }`}
+            >
+              {approvedIds.includes(item.id) ? 'Approved' : 'Approve'}
+            </button>
           </div>
         ))}
       </div>
