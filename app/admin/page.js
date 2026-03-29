@@ -41,6 +41,7 @@ async function approveListing(item) {
       image_url: item.image_url || '',
       venue_name: item.location || item.title || 'Location TBA',
       start_time: item.start_date || new Date().toISOString(),
+      price: item.price ?? null,
     },
   ]);
 
