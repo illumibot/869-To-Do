@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base layout */
 html,
 body {
   margin: 0;
@@ -12,50 +11,59 @@ body {
   background-color: #020b18;
 }
 
-/* Default background (lighter overlay) */
 body {
-  background:
-    linear-gradient(rgba(1, 10, 28, 0.12), rgba(1, 10, 28, 0.25)),
+  background-image:
+    linear-gradient(rgba(1, 10, 28, 0.04), rgba(1, 10, 28, 0.12)),
     url('/homebg.png');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-attachment: scroll;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center center, center center;
+  background-size: cover, cover;
+  background-attachment: scroll, scroll;
 }
 
 * {
   box-sizing: border-box;
 }
 
-/* Mobile portrait (your nice zoomed look) */
+/* Mobile portrait */
 @media (max-width: 767px) and (orientation: portrait) {
   body {
-    background-size: auto 100vh;
-    background-position: 68% top;
+    background-image:
+      linear-gradient(rgba(1, 10, 28, 0.03), rgba(1, 10, 28, 0.10)),
+      url('/homebg.png');
+    background-repeat: no-repeat, no-repeat;
+    background-position: center center, 68% top;
+    background-size: cover, auto 100vh;
+    background-attachment: scroll, scroll;
   }
 }
 
-/* Mobile landscape (restore visibility) */
+/* Mobile landscape */
 @media (max-width: 950px) and (orientation: landscape) {
   body {
-    background:
-      linear-gradient(rgba(1, 10, 28, 0.08), rgba(1, 10, 28, 0.18)),
+    background-image:
+      linear-gradient(rgba(1, 10, 28, 0.02), rgba(1, 10, 28, 0.08)),
       url('/homebg.png');
-    background-size: 100% auto;
-    background-position: center center;
-    background-repeat: no-repeat;
+    background-repeat: no-repeat, no-repeat;
+    background-position: center center, center center;
+    background-size: cover, 100% auto;
+    background-attachment: scroll, scroll;
   }
 }
 
-/* Tablet tuning */
+/* Tablet */
 @media (min-width: 768px) and (max-width: 1366px) {
   body {
-    background-position: center center;
-    background-size: cover;
+    background-image:
+      linear-gradient(rgba(1, 10, 28, 0.03), rgba(1, 10, 28, 0.10)),
+      url('/homebg.png');
+    background-repeat: no-repeat, no-repeat;
+    background-position: center center, center center;
+    background-size: cover, cover;
+    background-attachment: scroll, scroll;
   }
 }
 
-/* Horizontal scroll snapping */
 .snap-x {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
@@ -65,7 +73,6 @@ body {
   scroll-snap-align: start;
 }
 
-/* Scrollbar styling */
 .snap-x::-webkit-scrollbar {
   height: 8px;
 }
