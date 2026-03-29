@@ -346,8 +346,53 @@ export default function Page() {
     });
   }, [listings, search, activeIsland, activeCategory]);
 
-  const featuredListings = filteredListings.filter((item) => !!item.is_featured);
-  const regularListings = filteredListings.filter((item) => !item.is_featured);
+  const sortedListings = useMemo(() => {
+    const now = new Date();
+
+    return [...filteredListings].sort((a, b) => {
+      if (!!a.is_featured !== !!b.is_featured) {
+        return a.is_featured ? -1 : 1;
+      }
+
+      const aDateRaw = getDate(a);
+      const bDateRaw = getDate(b);
+
+      const aDate = aDateRaw ? new Date(aDateRaw) : null;
+      const bDate = bDateRaw ? new Date(bDateRaw) : null;
+
+      const aValid = aDate && !Number.isNaN(aDate.getTime());
+      const bValid = bDate && !Number.isNaN(bDate.getTime());
+
+      const aUpcoming = aValid && aDate >= now;
+      const bUpcoming = bValid && bDate >= now;
+
+      if (aUpcoming !== bUpcoming) {
+        return aUpcoming ? -1 : 1;
+      }
+
+      if (aValid && bValid) {
+        return aDate - bDate;
+      }
+
+      if (aValid && !bValid) return -1;
+      if (!aValid && bValid) return 1;
+
+      const aCreated = a.created_at ? new Date(a.created_at) : null;
+      const bCreated = b.created_at ? new Date(b.created_at) : null;
+
+      const aCreatedValid = aCreated && !Number.isNaN(aCreated.getTime());
+      const bCreatedValid = bCreated && !Number.isNaN(bCreated.getTime());
+
+      if (aCreatedValid && bCreatedValid) {
+        return bCreated - aCreated;
+      }
+
+      return 0;
+    });
+  }, [filteredListings]);
+
+  const featuredListings = sortedListings.filter((item) => !!item.is_featured);
+  const regularListings = sortedListings.filter((item) => !item.is_featured);
 
   const currentQueryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -466,9 +511,9 @@ export default function Page() {
             <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.78)] p-6 text-white/70">
               Loading listings...
             </div>
-          ) : filteredListings.length === 0 ? (
+          ) : regularListings.length === 0 ? (
             <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.78)] p-6 text-white/70">
-             No results found{search ? ` for "${search}"` : ''}.
+              No results found{search ? ` for "${search}"` : ''}.
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
