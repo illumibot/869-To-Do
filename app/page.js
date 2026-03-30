@@ -180,7 +180,7 @@ function ListingCard({ item, compact = false, queryString = '' }) {
   return (
     <div
       className={[
-        'overflow-hidden rounded-[24px] border backdrop-blur-md transition duration-300',
+        'overflow-hidden rounded-[24px] border transition duration-300',
         featured
           ? 'border-[#f0b13c] bg-[rgba(7,18,36,0.94)] shadow-[0_0_0_1px_rgba(240,177,60,0.35),0_0_24px_rgba(240,177,60,0.18)] hover:-translate-y-1 hover:shadow-[0_0_0_1px_rgba(240,177,60,0.45),0_0_34px_rgba(240,177,60,0.28)]'
           : 'border-white/10 bg-[rgba(7,18,36,0.90)] shadow-[0_10px_24px_rgba(0,0,0,0.20)] hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(0,0,0,0.28)]',
@@ -453,7 +453,7 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="mb-6 rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.72)] px-4 py-4 backdrop-blur-md">
+        <div className="mb-6 rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.72)] px-4 py-4 backdrop-blur-sm">
           <input
             type="text"
             placeholder="Search events, venues, food, music..."
@@ -567,7 +567,7 @@ export default function Page() {
         </section>
 
         <section className="mt-12">
-          <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.72)] px-5 py-6 text-center backdrop-blur-md">
+          <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.72)] px-5 py-6 text-center backdrop-blur-sm">
             <h3 className="text-lg font-semibold text-white">About 869 To Do</h3>
             <p className="mx-auto mt-2 max-w-2xl text-sm text-white/70">
               869 To Do is a simple local guide for events, food, nightlife, music, tours, and places worth checking out in St. Kitts and Nevis.
