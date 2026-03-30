@@ -176,7 +176,11 @@ function ListingCard({ item, compact = false, queryString = '' }) {
         )}
 
         {image ? (
-          <img src={image} alt={getTitle(item)} className="h-full w-full object-cover" />
+          <img
+            src={image}
+            alt={getTitle(item)}
+            className="h-full w-full object-cover"
+          />
         ) : (
           <div className="flex h-full items-center justify-center text-white/30">
             No image
@@ -186,9 +190,15 @@ function ListingCard({ item, compact = false, queryString = '' }) {
 
       <div className="space-y-3 bg-[#071224] p-4">
         <div className="flex flex-wrap gap-2 text-xs text-white/75">
-          <span className="rounded-full bg-white/10 px-3 py-1">{category}</span>
-          <span className="rounded-full bg-white/10 px-3 py-1">{getIsland(item)}</span>
-          <span className="rounded-full bg-white/10 px-3 py-1">{formatPrice(getPrice(item))}</span>
+          <span className="rounded-full bg-white/10 px-3 py-1">
+            {category}
+          </span>
+          <span className="rounded-full bg-white/10 px-3 py-1">
+            {getIsland(item)}
+          </span>
+          <span className="rounded-full bg-white/10 px-3 py-1">
+            {formatPrice(getPrice(item))}
+          </span>
         </div>
 
         <h3 className={`${compact ? 'text-xl' : 'text-2xl'} font-semibold text-white`}>
@@ -280,7 +290,15 @@ export default function Page() {
 
   const categories = useMemo(() => {
     const categoryOrder = [
-      'Events','Food','Music','Nightlife','Family','Tours','Wellness','Sports','Other',
+      'Events',
+      'Food',
+      'Music',
+      'Nightlife',
+      'Family',
+      'Tours',
+      'Wellness',
+      'Sports',
+      'Other',
     ];
 
     const found = Array.from(
@@ -290,9 +308,11 @@ export default function Page() {
     const sorted = found.sort((a, b) => {
       const aIndex = categoryOrder.indexOf(a);
       const bIndex = categoryOrder.indexOf(b);
+
       if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
       if (aIndex === -1) return 1;
       if (bIndex === -1) return -1;
+
       return aIndex - bIndex;
     });
 
@@ -309,11 +329,20 @@ export default function Page() {
       const category = getCategory(item);
       const island = getIsland(item);
 
-      return (
-        (!q || title.includes(q) || description.includes(q) || location.includes(q) || category.toLowerCase().includes(q)) &&
-        (activeIsland === 'All' || island === activeIsland) &&
-        (activeCategory === 'All' || category === activeCategory)
-      );
+      const matchesSearch =
+        !q ||
+        title.includes(q) ||
+        description.includes(q) ||
+        location.includes(q) ||
+        category.toLowerCase().includes(q);
+
+      const matchesIsland =
+        activeIsland === 'All' || island === activeIsland;
+
+      const matchesCategory =
+        activeCategory === 'All' || category === activeCategory;
+
+      return matchesSearch && matchesIsland && matchesCategory;
     });
   }, [listings, search, activeIsland, activeCategory]);
 
@@ -321,52 +350,144 @@ export default function Page() {
     const now = new Date();
 
     return [...filteredListings].sort((a, b) => {
-      if (!!a.is_featured !== !!b.is_featured) return a.is_featured ? -1 : 1;
+      if (!!a.is_featured !== !!b.is_featured) {
+        return a.is_featured ? -1 : 1;
+      }
 
-      const aDate = new Date(getDate(a));
-      const bDate = new Date(getDate(b));
+      const aDateRaw = getDate(a);
+      const bDateRaw = getDate(b);
 
-      const aValid = !Number.isNaN(aDate.getTime());
-      const bValid = !Number.isNaN(bDate.getTime());
+      const aDate = aDateRaw ? new Date(aDateRaw) : null;
+      const bDate = bDateRaw ? new Date(bDateRaw) : null;
+
+      const aValid = aDate && !Number.isNaN(aDate.getTime());
+      const bValid = bDate && !Number.isNaN(bDate.getTime());
 
       const aUpcoming = aValid && aDate >= now;
       const bUpcoming = bValid && bDate >= now;
 
-      if (aUpcoming !== bUpcoming) return aUpcoming ? -1 : 1;
-      if (aValid && bValid) return aDate - bDate;
+      if (aUpcoming !== bUpcoming) {
+        return aUpcoming ? -1 : 1;
+      }
+
+      if (aValid && bValid) {
+        return aDate - bDate;
+      }
+
+      if (aValid && !bValid) return -1;
+      if (!aValid && bValid) return 1;
+
+      const aCreated = a.created_at ? new Date(a.created_at) : null;
+      const bCreated = b.created_at ? new Date(b.created_at) : null;
+
+      const aCreatedValid = aCreated && !Number.isNaN(aCreated.getTime());
+      const bCreatedValid = bCreated && !Number.isNaN(bCreated.getTime());
+
+      if (aCreatedValid && bCreatedValid) {
+        return bCreated - aCreated;
+      }
 
       return 0;
     });
   }, [filteredListings]);
 
-  const featuredListings = sortedListings.filter((i) => i.is_featured);
-  const regularListings = sortedListings.filter((i) => !i.is_featured);
+  const featuredListings = sortedListings.filter((item) => !!item.is_featured);
+  const regularListings = sortedListings.filter((item) => !item.is_featured);
 
   const currentQueryString = useMemo(() => {
     const params = new URLSearchParams();
+
     if (search.trim()) params.set('search', search.trim());
     if (activeIsland !== 'All') params.set('island', activeIsland);
     if (activeCategory !== 'All') params.set('category', activeCategory);
+
     return params.toString();
   }, [search, activeIsland, activeCategory]);
 
   return (
     <div className="min-h-screen text-white">
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-md md:text-4xl">
+            869 To Do <span className="ml-2 text-2xl md:text-3xl">🇰🇳</span>
+          </h1>
 
-        {/* HEADER + FILTERS unchanged */}
+          <p className="mt-2 max-w-2xl text-white/70">
+            Events, live music, food, nightlife, and things happening in St. Kitts and Nevis.
+          </p>
+
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <TopActionButton href="/" primary>Home</TopActionButton>
+            <TopActionButton href="/submit">Submit Listing</TopActionButton>
+          </div>
+        </div>
+
+        <div className="mb-6 rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.78)] px-4 py-4 backdrop-blur-md">
+          <input
+            type="text"
+            placeholder="Search events, venues, food, music..."
+            value={search}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearch(value);
+              updateUrl(value, activeIsland, activeCategory);
+            }}
+            className="mb-4 w-full rounded-2xl border border-white/15 bg-[#08142b] px-5 py-3 text-white outline-none placeholder:text-white/40"
+          />
+
+          <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
+            {islands.map((island) => (
+              <FilterPill
+                key={island}
+                active={activeIsland === island}
+                onClick={() => {
+                  setActiveIsland(island);
+                  updateUrl(search, island, activeCategory);
+                }}
+              >
+                {island}
+              </FilterPill>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+              {categories.map((category) => (
+                <FilterPill
+                  key={category}
+                  active={activeCategory === category}
+                  onClick={() => {
+                    setActiveCategory(category);
+                    updateUrl(search, activeIsland, category);
+                  }}
+                  icon={category === 'All' ? null : categoryIcons[category] || categoryIcons.General}
+                >
+                  {category}
+                </FilterPill>
+              ))}
+            </div>
+
+            <span className="ml-2 whitespace-nowrap text-[11px] text-white/45">
+              swipe →
+            </span>
+          </div>
+        </div>
 
         {featuredListings.length > 0 && (
-          <section className="mb-6">
-            <div className="mb-3 px-4">
+          <section className="mb-8">
+            <div className="mb-3 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">
                 Featured ({featuredListings.length})
               </h2>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 px-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {featuredListings.map((item) => (
-                <ListingCard key={item.id} item={item} queryString={currentQueryString} />
+                <ListingCard
+                  key={item.id}
+                  item={item}
+                  queryString={currentQueryString}
+                />
               ))}
             </div>
           </section>
@@ -394,7 +515,6 @@ export default function Page() {
             </div>
           )}
         </section>
-
       </main>
     </div>
   );
