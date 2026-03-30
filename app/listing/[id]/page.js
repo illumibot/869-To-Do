@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 
 function normalizeIsland(value) {
@@ -61,15 +62,15 @@ function getIsland(item) {
 }
 
 function getLocation(item) {
-  return item.location || item.venue || item.place || item.address || getIsland(item);
+  return item.location || item.venue || item.venue_name || item.place || item.address || getIsland(item);
 }
 
 function getDate(item) {
-  return item.date || item.event_date || item.starts_at || item.start_date || item.created_at;
+  return item.start_time || item.date || item.event_date || item.starts_at || item.start_date || item.created_at;
 }
 
 function getEndDate(item) {
-  return item.end_date || item.ends_at || item.endtime || item.end || '';
+  return item.end_time || item.end_date || item.ends_at || item.endtime || item.end || '';
 }
 
 function getPrice(item) {
@@ -136,33 +137,30 @@ function getWhatsAppLink(phone) {
   const digits = phoneDigitsOnly(phone);
   if (!digits) return '';
 
-  if (digits.startsWith('1')) {
-    return `https://wa.me/${digits}`;
-  }
-
-  if (digits.length === 10) {
-    return `https://wa.me/1${digits}`;
-  }
-
-  if (digits.length === 7) {
-    return `https://wa.me/1869${digits}`;
-  }
+  if (digits.startsWith('1')) return `https://wa.me/${digits}`;
+  if (digits.length === 10) return `https://wa.me/1${digits}`;
+  if (digits.length === 7) return `https://wa.me/1869${digits}`;
 
   return `https://wa.me/${digits}`;
 }
 
-export default function ListingDetailPage({ params }) {
+export default function ListingDetailPage() {
+  const params = useParams();
+  const id = params?.id;
+
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadListing() {
+      if (!id) return;
+
       setLoading(true);
 
       const { data, error } = await supabase
         .from('listings')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', String(id))
         .single();
 
       if (error) {
@@ -176,7 +174,7 @@ export default function ListingDetailPage({ params }) {
     }
 
     loadListing();
-  }, [params.id]);
+  }, [id]);
 
   if (loading) {
     return (
