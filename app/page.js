@@ -1,66 +1,83 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { supabase } from '../lib/supabase';
-
-const islands = ['All', 'St. Kitts', 'Nevis'];
-
-const categoryIcons = {
-  Music: '♫',
-  Nightlife: '♥',
-  Family: '◔',
-  Food: '☕',
-  Tours: '✦',
-  Wellness: '☼',
-  Sports: '◆',
-  Events: '●',
-  Other: '○',
-  General: '•',
-};
+import { useEffect, useState } from 'react';
+import { supabase } from '../../../lib/supabase';
 
 function normalizeIsland(value) {
-  return String(value || '')
-    .toLowerCase()
-    .replace(/\./g, '')
-    .replace(/saint/g, 'st')
-    .replace(/\s+/g, ' ')
-    .trim();
+  if (!value) return 'Other';
+  const str = String(value).trim().toLowerCase();
+
+  if (
+    str.includes('st. kitts') ||
+    str.includes('st kitts') ||
+    str.includes('saint kitts') ||
+    str.includes('kitts')
+  ) {
+    return 'St. Kitts';
+  }
+
+  if (str.includes('nevis')) {
+    return 'Nevis';
+  }
+
+  return String(value).trim();
+}
+
+function formatDate(value) {
+  if (!value) return 'Date TBA';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+
+  return d.toLocaleString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function formatPrice(value) {
+  if (value === null || value === undefined || value === '') return 'Free';
+
+  const num = Number(value);
+  if (Number.isNaN(num)) return String(value);
+  if (num === 0) return 'Free';
+
+  return `EC$${num.toLocaleString()}`;
 }
 
 function getTitle(item) {
-  return item.title || item.name || item.event_name || 'Untitled Listing';
+  return item.title || item.name || item.event_name || 'Untitled Event';
 }
 
 function getCategory(item) {
-  return item.category || item.type || item.event_type || 'Other';
+  return item.category || item.type || item.event_type || 'General';
 }
 
 function getIsland(item) {
-  const raw = normalizeIsland(
-    item.island || item.location_island || item.region || item.location || ''
-  );
-
-  if (raw.includes('nevis')) return 'Nevis';
-  if (raw.includes('kitts')) return 'St. Kitts';
-
-  return item.island || item.location_island || item.region || 'Other';
+  return normalizeIsland(item.island || item.location_island || item.region || item.area);
 }
 
 function getLocation(item) {
-  return (
-    item.location ||
-    item.venue_name ||
-    item.venue ||
-    item.place ||
-    item.address ||
-    'Location TBA'
-  );
+  return item.location || item.venue || item.place || item.address || getIsland(item);
+}
+
+function getDate(item) {
+  return item.date || item.event_date || item.starts_at || item.start_date || item.created_at;
+}
+
+function getEndDate(item) {
+  return item.end_date || item.ends_at || item.endtime || item.end || '';
+}
+
+function getPrice(item) {
+  return item.price ?? item.cost ?? item.ticket_price ?? 0;
 }
 
 function getDescription(item) {
-  return item.description || 'No description available.';
+  return item.description || item.details || item.summary || 'No description yet.';
 }
 
 function getImage(item) {
@@ -69,501 +86,265 @@ function getImage(item) {
     item.image ||
     item.photo_url ||
     item.cover_image ||
-    item.flyer_url ||
+    item.thumbnail ||
     ''
   );
 }
 
-function getPrice(item) {
-  return item.price ?? item.cost ?? item.ticket_price ?? 0;
+function getPhone(item) {
+  return item.phone || item.phone_number || item.contact_phone || item.whatsapp || '';
 }
 
-function getDate(item) {
-  return (
-    item.start_time ||
-    item.date ||
-    item.event_date ||
-    item.starts_at ||
-    item.start_date ||
-    ''
-  );
+function cleanPhone(phone) {
+  return String(phone || '').replace(/[^\d+]/g, '');
 }
 
-function formatPrice(value) {
-  const n = Number(value);
-  if (!n) return 'Free';
-  return `EC$${n.toFixed(0)}`;
+function phoneDigitsOnly(phone) {
+  return String(phone || '').replace(/\D/g, '');
 }
 
-function formatEventDate(value) {
-  if (!value) return 'Date TBA';
+function formatPhone(phone) {
+  const digits = phoneDigitsOnly(phone);
 
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
+  if (!digits) return '';
 
-  const weekday = d.toLocaleDateString(undefined, { weekday: 'short' });
-  const month = d.toLocaleDateString(undefined, { month: 'short' });
-  const day = d.getDate();
+  if (digits.length === 11 && digits.startsWith('1')) {
+    const country = digits.slice(0, 1);
+    const area = digits.slice(1, 4);
+    const first = digits.slice(4, 7);
+    const last = digits.slice(7, 11);
+    return `+${country} (${area}) ${first}-${last}`;
+  }
 
-  let hours = d.getHours();
-  const minutes = d.getMinutes();
-  const ampm = hours >= 12 ? 'pm' : 'am';
-  hours = hours % 12 || 12;
+  if (digits.length === 10) {
+    const area = digits.slice(0, 3);
+    const first = digits.slice(3, 6);
+    const last = digits.slice(6, 10);
+    return `(${area}) ${first}-${last}`;
+  }
 
-  const minuteText =
-    minutes === 0 ? '' : `:${String(minutes).padStart(2, '0')}`;
+  if (digits.length === 7) {
+    const first = digits.slice(0, 3);
+    const last = digits.slice(3, 7);
+    return `${first}-${last}`;
+  }
 
-  return `${weekday} ${month} ${day} · ${hours}${minuteText}${ampm}`;
+  return String(phone);
 }
 
-function FilterPill({ active, children, onClick, icon = null }) {
-  return (
-    <button
-      onClick={onClick}
-      className={[
-        'rounded-full border px-4 py-2.5 text-sm font-medium transition whitespace-nowrap',
-        active
-          ? 'border-[#f7d68a]/70 bg-[#f0b13c] text-black shadow-[0_0_16px_rgba(240,177,60,0.22)]'
-          : 'border-white/20 bg-[rgba(8,18,42,0.84)] text-white/92 hover:bg-[rgba(12,27,58,0.96)]',
-      ].join(' ')}
-    >
-      <span className="flex items-center gap-2">
-        {icon ? <span className="text-[0.95rem] leading-none">{icon}</span> : null}
-        <span>{children}</span>
-      </span>
-    </button>
-  );
+function getWhatsAppLink(phone) {
+  const digits = phoneDigitsOnly(phone);
+  if (!digits) return '';
+
+  if (digits.startsWith('1')) {
+    return `https://wa.me/${digits}`;
+  }
+
+  if (digits.length === 10) {
+    return `https://wa.me/1${digits}`;
+  }
+
+  if (digits.length === 7) {
+    return `https://wa.me/1869${digits}`;
+  }
+
+  return `https://wa.me/${digits}`;
 }
 
-function TopActionButton({ href, children, primary = false, onClick = null }) {
-  return (
-    <Link
-      href={href}
-      onClick={onClick}
-      className={[
-        'rounded-2xl border px-4 py-2.5 text-sm font-semibold transition',
-        primary
-          ? 'border-[#f7d68a]/70 bg-[#f0b13c] text-black hover:bg-[#e0a52f]'
-          : 'border-white/15 bg-[rgba(8,18,42,0.84)] text-white hover:bg-[rgba(12,27,58,0.96)]',
-      ].join(' ')}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function ListingCard({ item, compact = false, queryString = '' }) {
-  const featured = !!item.is_featured;
-  const image = getImage(item);
-  const category = getCategory(item);
-  const href = queryString
-    ? `/listing/${item.id}?${queryString}`
-    : `/listing/${item.id}`;
-
-  return (
-    <div
-      className={[
-        'overflow-hidden rounded-[24px] border backdrop-blur-md transition duration-300',
-        featured
-          ? 'border-[#f0b13c] bg-[rgba(7,18,36,0.94)] shadow-[0_0_0_1px_rgba(240,177,60,0.35),0_0_24px_rgba(240,177,60,0.18)] hover:-translate-y-1 hover:shadow-[0_0_0_1px_rgba(240,177,60,0.45),0_0_34px_rgba(240,177,60,0.28)]'
-          : 'border-white/10 bg-[rgba(7,18,36,0.90)] shadow-[0_10px_24px_rgba(0,0,0,0.20)] hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(0,0,0,0.28)]',
-      ].join(' ')}
-    >
-      <div className={`relative ${compact ? 'h-40' : 'h-52'} bg-slate-900`}>
-        {featured && (
-          <div className="absolute left-4 top-4 z-10 rounded-xl bg-yellow-400 px-3 py-1 text-xs font-extrabold text-black">
-            FEATURED
-          </div>
-        )}
-
-        {image ? (
-          <img
-            src={image}
-            alt={getTitle(item)}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-white/30">
-            No image
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-3 bg-[rgba(7,18,36,0.96)] p-4">
-        <div className="flex flex-wrap gap-2 text-xs text-white/75">
-          <span className="rounded-full bg-white/10 px-3 py-1">
-            {category}
-          </span>
-          <span className="rounded-full bg-white/10 px-3 py-1">
-            {getIsland(item)}
-          </span>
-          <span className="rounded-full bg-white/10 px-3 py-1">
-            {formatPrice(getPrice(item))}
-          </span>
-        </div>
-
-        <h3 className={`${compact ? 'text-xl' : 'text-2xl'} font-semibold text-white`}>
-          {getTitle(item)}
-        </h3>
-
-        <div className="space-y-1 text-sm text-white/75">
-          <p>{formatEventDate(getDate(item))}</p>
-          <p>{getLocation(item)}</p>
-        </div>
-
-        <p className={`${compact ? 'line-clamp-2' : 'line-clamp-3'} text-sm text-white/70`}>
-          {getDescription(item)}
-        </p>
-
-        <Link
-          href={href}
-          className={[
-            'block w-full rounded-2xl py-3 text-center font-semibold transition',
-            featured
-              ? 'bg-[#f0b13c] text-black hover:bg-[#e0a52f]'
-              : 'bg-[#4f8ff7] text-white hover:bg-[#3e7fe8]',
-          ].join(' ')}
-        >
-          Open
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-export default function Page() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const [listings, setListings] = useState([]);
-  const [search, setSearch] = useState('');
-  const [activeIsland, setActiveIsland] = useState('All');
-  const [activeCategory, setActiveCategory] = useState('All');
+export default function ListingDetailPage({ params }) {
+  const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadListings() {
+    async function loadListing() {
       setLoading(true);
 
       const { data, error } = await supabase
         .from('listings')
         .select('*')
-        .order('is_featured', { ascending: false })
-        .order('created_at', { ascending: false });
+        .eq('id', params.id)
+        .single();
 
       if (error) {
-        console.error('Error loading listings:', error);
-        setListings([]);
-        setLoading(false);
-        return;
+        console.error('Error loading listing:', error);
+        setListing(null);
+      } else {
+        setListing(data);
       }
 
-      const approved = (data || []).filter((item) => {
-        if (item.is_approved === false) return false;
-        if (item.approved === false) return false;
-        if (String(item.status || '').toLowerCase() === 'pending') return false;
-        return true;
-      });
-
-      setListings(approved);
       setLoading(false);
     }
 
-    loadListings();
-  }, []);
+    loadListing();
+  }, [params.id]);
 
-  useEffect(() => {
-    const nextSearch = searchParams.get('search') || '';
-    const nextIsland = searchParams.get('island') || 'All';
-    const nextCategory = searchParams.get('category') || 'All';
-
-    setSearch(nextSearch);
-    setActiveIsland(nextIsland);
-    setActiveCategory(nextCategory);
-  }, [searchParams]);
-
-  function updateUrl(nextSearch, nextIsland, nextCategory) {
-    const params = new URLSearchParams();
-
-    if (nextSearch.trim()) params.set('search', nextSearch.trim());
-    if (nextIsland !== 'All') params.set('island', nextIsland);
-    if (nextCategory !== 'All') params.set('category', nextCategory);
-
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white">
+        <div className="mx-auto max-w-4xl px-4 py-8">
+          <p className="text-white/70">Loading listing...</p>
+        </div>
+      </main>
+    );
   }
 
-  function resetToHome() {
-    setSearch('');
-    setActiveIsland('All');
-    setActiveCategory('All');
-    router.replace('/', { scroll: false });
+  if (!listing) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white">
+        <div className="mx-auto max-w-4xl px-4 py-8">
+          <Link
+            href="/"
+            className="inline-block rounded-xl border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+          >
+            Back
+          </Link>
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+            <h1 className="text-2xl font-bold">Listing not found</h1>
+            <p className="mt-2 text-white/70">
+              This listing may have been removed or the ID does not match your table.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
   }
 
-  const categories = useMemo(() => {
-    const categoryOrder = [
-      'Events',
-      'Food',
-      'Music',
-      'Nightlife',
-      'Family',
-      'Tours',
-      'Wellness',
-      'Sports',
-      'Other',
-    ];
-
-    const found = Array.from(
-      new Set(listings.map((item) => getCategory(item)).filter(Boolean))
-    ).filter((c) => c !== 'Specials');
-
-    const sorted = found.sort((a, b) => {
-      const aIndex = categoryOrder.indexOf(a);
-      const bIndex = categoryOrder.indexOf(b);
-
-      if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
-      if (aIndex === -1) return 1;
-      if (bIndex === -1) return -1;
-
-      return aIndex - bIndex;
-    });
-
-    return ['All', ...sorted];
-  }, [listings]);
-
-  const filteredListings = useMemo(() => {
-    const q = search.trim().toLowerCase();
-
-    return listings.filter((item) => {
-      const title = getTitle(item).toLowerCase();
-      const description = getDescription(item).toLowerCase();
-      const location = getLocation(item).toLowerCase();
-      const category = getCategory(item);
-      const island = getIsland(item);
-
-      const matchesSearch =
-        !q ||
-        title.includes(q) ||
-        description.includes(q) ||
-        location.includes(q) ||
-        category.toLowerCase().includes(q);
-
-      const matchesIsland =
-        activeIsland === 'All' || island === activeIsland;
-
-      const matchesCategory =
-        activeCategory === 'All' || category === activeCategory;
-
-      return matchesSearch && matchesIsland && matchesCategory;
-    });
-  }, [listings, search, activeIsland, activeCategory]);
-
-  const sortedListings = useMemo(() => {
-    const now = new Date();
-
-    return [...filteredListings].sort((a, b) => {
-      if (!!a.is_featured !== !!b.is_featured) {
-        return a.is_featured ? -1 : 1;
-      }
-
-      const aDateRaw = getDate(a);
-      const bDateRaw = getDate(b);
-
-      const aDate = aDateRaw ? new Date(aDateRaw) : null;
-      const bDate = bDateRaw ? new Date(bDateRaw) : null;
-
-      const aValid = aDate && !Number.isNaN(aDate.getTime());
-      const bValid = bDate && !Number.isNaN(bDate.getTime());
-
-      const aUpcoming = aValid && aDate >= now;
-      const bUpcoming = bValid && bDate >= now;
-
-      if (aUpcoming !== bUpcoming) {
-        return aUpcoming ? -1 : 1;
-      }
-
-      if (aValid && bValid) {
-        return aDate - bDate;
-      }
-
-      if (aValid && !bValid) return -1;
-      if (!aValid && bValid) return 1;
-
-      const aCreated = a.created_at ? new Date(a.created_at) : null;
-      const bCreated = b.created_at ? new Date(b.created_at) : null;
-
-      const aCreatedValid = aCreated && !Number.isNaN(aCreated.getTime());
-      const bCreatedValid = bCreated && !Number.isNaN(bCreated.getTime());
-
-      if (aCreatedValid && bCreatedValid) {
-        return bCreated - aCreated;
-      }
-
-      return 0;
-    });
-  }, [filteredListings]);
-
-  const featuredListings = sortedListings.filter((item) => !!item.is_featured);
-  const regularListings = sortedListings.filter((item) => !item.is_featured);
-
-  const currentQueryString = useMemo(() => {
-    const params = new URLSearchParams();
-
-    if (search.trim()) params.set('search', search.trim());
-    if (activeIsland !== 'All') params.set('island', activeIsland);
-    if (activeCategory !== 'All') params.set('category', activeCategory);
-
-    return params.toString();
-  }, [search, activeIsland, activeCategory]);
+  const title = getTitle(listing);
+  const category = getCategory(listing);
+  const island = getIsland(listing);
+  const location = getLocation(listing);
+  const date = getDate(listing);
+  const endDate = getEndDate(listing);
+  const price = getPrice(listing);
+  const description = getDescription(listing);
+  const image = getImage(listing);
+  const phone = getPhone(listing);
+  const formattedPhone = formatPhone(phone);
+  const telPhone = cleanPhone(phone);
+  const whatsappLink = getWhatsAppLink(phone);
+  const featured = !!listing.is_featured;
 
   return (
-    <div className="min-h-screen text-white">
-      <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
-        <div className="mb-6 flex flex-col items-center text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-md md:text-4xl">
-            869 To Do{' '}
-            <span className="ml-2 inline-block text-[1.85rem] leading-none md:text-[2.2rem]">
-              🇰🇳
-            </span>
-          </h1>
+    <main className="min-h-screen bg-slate-950 text-white">
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <button
+          onClick={() => {
+            if (window.history.length > 1) {
+              window.history.back();
+            } else {
+              window.location.href = '/';
+            }
+          }}
+          className="mb-4 text-sm text-white/70 hover:text-white"
+        >
+          ← Back to listings
+        </button>
 
-          <p className="mt-2 max-w-2xl text-white/70">
-            Events, live music, food, nightlife, and things happening in St. Kitts and Nevis.
-          </p>
+        <div
+          className={[
+            'mt-6 overflow-hidden rounded-3xl border bg-white/5',
+            featured
+              ? 'border-[#f0b13c] shadow-[0_0_0_1px_rgba(240,177,60,0.28),0_0_28px_rgba(240,177,60,0.16)]'
+              : 'border-white/10',
+          ].join(' ')}
+        >
+          <div className="relative h-72 w-full bg-white/5">
+            {featured && (
+              <div className="absolute left-4 top-4 z-10 rounded-xl bg-[#f0b13c] px-3 py-1 text-xs font-extrabold text-black shadow-md">
+                FEATURED LISTING
+              </div>
+            )}
 
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <TopActionButton
-              href="/"
-              primary
-              onClick={(e) => {
-                e.preventDefault();
-                resetToHome();
-              }}
-            >
-              Home
-            </TopActionButton>
-            <TopActionButton href="/submit">Submit Listing</TopActionButton>
+            {image ? (
+              <img src={image} alt={title} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full items-center justify-center text-white/40">
+                No image
+              </div>
+            )}
           </div>
-        </div>
 
-        <div className="mb-6 rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.72)] px-4 py-4 backdrop-blur-md">
-          <input
-            type="text"
-            placeholder="Search events, venues, food, music..."
-            value={search}
-            onChange={(e) => {
-              const value = e.target.value;
-              setSearch(value);
-              updateUrl(value, activeIsland, activeCategory);
-            }}
-            className="mb-4 w-full rounded-2xl border border-white/15 bg-[#08142b] px-5 py-3 text-white outline-none placeholder:text-white/40"
-          />
-
-          <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
-            {islands.map((island) => (
-              <FilterPill
-                key={island}
-                active={activeIsland === island}
-                onClick={() => {
-                  setActiveIsland(island);
-                  updateUrl(search, island, activeCategory);
-                }}
+          <div className="space-y-5 p-6">
+            <div className="flex flex-wrap items-center gap-3">
+              <span
+                className={[
+                  'rounded-full px-3 py-1 text-xs font-medium',
+                  featured
+                    ? 'bg-[#f0b13c]/15 text-[#f7cf77]'
+                    : 'bg-cyan-400/15 text-cyan-300',
+                ].join(' ')}
               >
+                {category}
+              </span>
+
+              <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-white/70">
                 {island}
-              </FilterPill>
-            ))}
-          </div>
+              </span>
 
-          <div className="flex items-center gap-2">
-            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-              {categories.map((category) => (
-                <FilterPill
-                  key={category}
-                  active={activeCategory === category}
-                  onClick={() => {
-                    setActiveCategory(category);
-                    updateUrl(search, activeIsland, category);
-                  }}
-                  icon={category === 'All' ? null : categoryIcons[category] || categoryIcons.General}
-                >
-                  {category}
-                </FilterPill>
-              ))}
+              {featured && (
+                <span className="rounded-full bg-[#f0b13c]/15 px-3 py-1 text-xs font-semibold text-[#f7cf77]">
+                  Premium placement
+                </span>
+              )}
             </div>
 
-            <span className="ml-2 whitespace-nowrap text-[11px] text-white/45 lg:hidden">
-              swipe →
-            </span>
+            <div>
+              <h1 className="text-3xl font-bold">{title}</h1>
+              <p className="mt-2 text-white/70">{location}</p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-sm text-white/50">Start</p>
+                <p className="mt-1 text-lg font-medium">{formatDate(date)}</p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-sm text-white/50">Price</p>
+                <p className="mt-1 text-lg font-medium">{formatPrice(price)}</p>
+              </div>
+            </div>
+
+            {endDate && (
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-sm text-white/50">End</p>
+                <p className="mt-1 text-lg font-medium">{formatDate(endDate)}</p>
+              </div>
+            )}
+
+            {phone && (
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-sm text-white/50">Contact</p>
+
+                <div className="mt-3 flex flex-wrap gap-3">
+                  <a
+                    href={`tel:${telPhone}`}
+                    className="inline-flex items-center rounded-xl bg-[#4f8ff7] px-4 py-3 font-semibold text-white hover:bg-[#3e7fe8]"
+                  >
+                    Call {formattedPhone}
+                  </a>
+
+                  <a
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center rounded-xl border border-green-400/40 bg-green-500/15 px-4 py-3 font-semibold text-green-300 hover:bg-green-500/25"
+                  >
+                    WhatsApp
+                  </a>
+                </div>
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-sm text-white/50">
+                {featured ? 'About this featured listing' : 'About this listing'}
+              </p>
+              <p className="mt-2 whitespace-pre-wrap text-white/80">{description}</p>
+            </div>
           </div>
         </div>
-
-        {featuredListings.length > 0 && (
-          <section className="mb-8">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">
-                Featured ({featuredListings.length})
-              </h2>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {featuredListings.map((item) => (
-                <ListingCard
-                  key={item.id}
-                  item={item}
-                  queryString={currentQueryString}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">More to do</h2>
-            <span className="text-sm text-white/60">{regularListings.length} found</span>
-          </div>
-
-          {loading ? (
-            <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.78)] p-6 text-white/70">
-              Loading listings...
-            </div>
-          ) : regularListings.length === 0 ? (
-            <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.78)] p-6 text-white/70">
-              No results found{search ? ` for "${search}"` : ''}.
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {regularListings.map((item) => (
-                <ListingCard key={item.id} item={item} queryString={currentQueryString} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="mt-12">
-          <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.72)] px-5 py-6 text-center backdrop-blur-md">
-            <h3 className="text-lg font-semibold text-white">About 869 To Do</h3>
-            <p className="mx-auto mt-2 max-w-2xl text-sm text-white/70">
-              869 To Do is a simple local guide for events, food, nightlife, music, tours, and places worth checking out in St. Kitts and Nevis.
-            </p>
-
-            <div className="mt-5 flex flex-wrap justify-center gap-2">
-              <TopActionButton
-                href="/"
-                primary
-                onClick={(e) => {
-                  e.preventDefault();
-                  resetToHome();
-                }}
-              >
-                Home
-              </TopActionButton>
-              <TopActionButton href="/submit">Submit Listing</TopActionButton>
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
