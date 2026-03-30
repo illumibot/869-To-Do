@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 
@@ -135,10 +135,11 @@ function FilterPill({ active, children, onClick, icon = null }) {
   );
 }
 
-function TopActionButton({ href, children, primary = false }) {
+function TopActionButton({ href, children, primary = false, onClick = null }) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={[
         'rounded-2xl border px-4 py-2.5 text-sm font-semibold transition',
         primary
@@ -234,7 +235,6 @@ export default function Page() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const didResetHomeFilters = useRef(false);
 
   const [listings, setListings] = useState([]);
   const [search, setSearch] = useState('');
@@ -274,17 +274,6 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    const queryString = searchParams.toString();
-
-    if (!didResetHomeFilters.current && pathname === '/' && queryString) {
-      didResetHomeFilters.current = true;
-      setSearch('');
-      setActiveIsland('All');
-      setActiveCategory('All');
-      router.replace(pathname, { scroll: false });
-      return;
-    }
-
     const nextSearch = searchParams.get('search') || '';
     const nextIsland = searchParams.get('island') || 'All';
     const nextCategory = searchParams.get('category') || 'All';
@@ -292,7 +281,7 @@ export default function Page() {
     setSearch(nextSearch);
     setActiveIsland(nextIsland);
     setActiveCategory(nextCategory);
-  }, [searchParams, pathname, router]);
+  }, [searchParams]);
 
   function updateUrl(nextSearch, nextIsland, nextCategory) {
     const params = new URLSearchParams();
@@ -303,6 +292,13 @@ export default function Page() {
 
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }
+
+  function resetToHome() {
+    setSearch('');
+    setActiveIsland('All');
+    setActiveCategory('All');
+    router.replace('/', { scroll: false });
   }
 
   const categories = useMemo(() => {
@@ -437,7 +433,16 @@ export default function Page() {
           </p>
 
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <TopActionButton href="/" primary>Home</TopActionButton>
+            <TopActionButton
+              href="/"
+              primary
+              onClick={(e) => {
+                e.preventDefault();
+                resetToHome();
+              }}
+            >
+              Home
+            </TopActionButton>
             <TopActionButton href="/submit">Submit Listing</TopActionButton>
           </div>
         </div>
@@ -544,7 +549,16 @@ export default function Page() {
             </p>
 
             <div className="mt-5 flex flex-wrap justify-center gap-2">
-              <TopActionButton href="/" primary>Home</TopActionButton>
+              <TopActionButton
+                href="/"
+                primary
+                onClick={(e) => {
+                  e.preventDefault();
+                  resetToHome();
+                }}
+              >
+                Home
+              </TopActionButton>
               <TopActionButton href="/submit">Submit Listing</TopActionButton>
             </div>
           </div>
