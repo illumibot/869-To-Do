@@ -222,6 +222,7 @@ export default function ListingDetailPage({ params }) {
   const formattedPhone = formatPhone(phone);
   const telPhone = cleanPhone(phone);
   const whatsappLink = getWhatsAppLink(phone);
+  const featured = !!listing.is_featured;
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -239,8 +240,21 @@ export default function ListingDetailPage({ params }) {
           ← Back to listings
         </button>
 
-        <div className="mt-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5">
-          <div className="h-72 w-full bg-white/5">
+        <div
+          className={[
+            'mt-6 overflow-hidden rounded-3xl border bg-white/5',
+            featured
+              ? 'border-[#f0b13c] shadow-[0_0_0_1px_rgba(240,177,60,0.28),0_0_28px_rgba(240,177,60,0.16)]'
+              : 'border-white/10',
+          ].join(' ')}
+        >
+          <div className="relative h-72 w-full bg-white/5">
+            {featured && (
+              <div className="absolute left-4 top-4 z-10 rounded-xl bg-[#f0b13c] px-3 py-1 text-xs font-extrabold text-black shadow-md">
+                FEATURED LISTING
+              </div>
+            )}
+
             {image ? (
               <img src={image} alt={title} className="h-full w-full object-cover" />
             ) : (
@@ -252,12 +266,26 @@ export default function ListingDetailPage({ params }) {
 
           <div className="space-y-5 p-6">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-full bg-cyan-400/15 px-3 py-1 text-xs font-medium text-cyan-300">
+              <span
+                className={[
+                  'rounded-full px-3 py-1 text-xs font-medium',
+                  featured
+                    ? 'bg-[#f0b13c]/15 text-[#f7cf77]'
+                    : 'bg-cyan-400/15 text-cyan-300',
+                ].join(' ')}
+              >
                 {category}
               </span>
+
               <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-white/70">
                 {island}
               </span>
+
+              {featured && (
+                <span className="rounded-full bg-[#f0b13c]/15 px-3 py-1 text-xs font-semibold text-[#f7cf77]">
+                  Premium placement
+                </span>
+              )}
             </div>
 
             <div>
@@ -291,7 +319,7 @@ export default function ListingDetailPage({ params }) {
                 <div className="mt-3 flex flex-wrap gap-3">
                   <a
                     href={`tel:${telPhone}`}
-                    className="inline-flex items-center rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-black hover:bg-cyan-300"
+                    className="inline-flex items-center rounded-xl bg-[#4f8ff7] px-4 py-3 font-semibold text-white hover:bg-[#3e7fe8]"
                   >
                     Call {formattedPhone}
                   </a>
@@ -309,7 +337,9 @@ export default function ListingDetailPage({ params }) {
             )}
 
             <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-sm text-white/50">About this event</p>
+              <p className="text-sm text-white/50">
+                {featured ? 'About this featured listing' : 'About this listing'}
+              </p>
               <p className="mt-2 whitespace-pre-wrap text-white/80">{description}</p>
             </div>
           </div>
