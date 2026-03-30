@@ -13,7 +13,7 @@ body {
 
 body {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.12)),
     url('/homebg.png');
   background-repeat: no-repeat;
   background-position: center top;
@@ -23,19 +23,6 @@ body {
 
 * {
   box-sizing: border-box;
-}
-
-/* Large desktop */
-@media (min-width: 1367px) {
-  body {
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)),
-      url('/homebg.png');
-    background-repeat: no-repeat;
-    background-position: center top;
-    background-size: 100% auto;
-    background-attachment: scroll;
-  }
 }
 
 /* Phone portrait */
@@ -60,7 +47,7 @@ body {
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: portrait) {
   body {
     background-image:
-      linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+      linear-gradient(rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.10)),
       url('/homebg.png');
     background-repeat: no-repeat;
     background-position: center top;
@@ -73,11 +60,24 @@ body {
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
   body {
     background-image:
-      linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+      linear-gradient(rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.10)),
       url('/homebg.png');
     background-repeat: no-repeat;
     background-position: center top;
     background-size: cover;
+    background-attachment: scroll;
+  }
+}
+
+/* Large desktop */
+@media (min-width: 1400px) {
+  body {
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.08)),
+      url('/homebg.png');
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: 100% auto;
     background-attachment: scroll;
   }
 }
