@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRef, useState } from 'react';
+import imageCompression from 'browser-image-compression';
 import { supabase } from '../../lib/supabase';
 
 const categoryOptions = [
@@ -38,22 +39,18 @@ function normalizePhone(areaCode, phone) {
 
   if (!cleanPhone) return null;
 
-  // If user pasted a full number beginning with country code
   if (cleanPhone.length >= 11 && cleanPhone.startsWith('1')) {
     return `+${cleanPhone}`;
   }
 
-  // If user entered 10 digits like 8695551234
   if (cleanPhone.length === 10) {
     return `+1${cleanPhone}`;
   }
 
-  // Standard local number + selected area code
   if (cleanPhone.length === 7 && cleanAreaCode) {
     return `+1${cleanAreaCode}${cleanPhone}`;
   }
 
-  // Fallback
   if (cleanAreaCode) {
     return `+1${cleanAreaCode}${cleanPhone}`;
   }
@@ -98,25 +95,47 @@ export default function SubmitPage() {
     setUploadingImage(true);
     setError('');
 
-    const safeName = file.name.replace(/\s+/g, '-').toLowerCase();
-    const fileName = `${Date.now()}-${safeName}`;
+    try {
+      const compressionOptions = {
+        maxSizeMB: 0.2, // about 200 KB target
+        maxWidthOrHeight: 1400,
+        useWebWorker: true,
+        initialQuality: 0.8,
+      };
 
-    const { error: uploadError } = await supabase.storage
-      .from('listing-images')
-      .upload(fileName, file);
+      const compressedFile = await imageCompression(file, compressionOptions);
 
-    if (uploadError) {
-      setError(uploadError.message);
+      const originalBase = file.name.replace(/\.[^/.]+$/, '');
+      const safeBase = originalBase.replace(/\s+/g, '-').toLowerCase();
+      const fileName = `${Date.now()}-${safeBase}.jpg`;
+
+      const uploadFile = new File([compressedFile], fileName, {
+        type: 'image/jpeg',
+      });
+
+      const { error: uploadError } = await supabase.storage
+        .from('listing-images')
+        .upload(fileName, uploadFile, {
+          contentType: 'image/jpeg',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        setError(uploadError.message);
+        setUploadingImage(false);
+        return;
+      }
+
+      const { data } = supabase.storage
+        .from('listing-images')
+        .getPublicUrl(fileName);
+
+      updateField('image_url', data.publicUrl);
+    } catch (err) {
+      setError(err?.message || 'Image compression/upload failed.');
+    } finally {
       setUploadingImage(false);
-      return;
     }
-
-    const { data } = supabase.storage
-      .from('listing-images')
-      .getPublicUrl(fileName);
-
-    updateField('image_url', data.publicUrl);
-    setUploadingImage(false);
   }
 
   async function handleSubmit(e) {
@@ -278,7 +297,7 @@ export default function SubmitPage() {
               className="w-full text-sm"
             />
             {uploadingImage && (
-              <p className="mt-2 text-sm text-cyan-300">Uploading...</p>
+              <p className="mt-2 text-sm text-cyan-300">Compressing and uploading...</p>
             )}
             {form.image_url && (
               <img
@@ -343,9 +362,9 @@ export default function SubmitPage() {
           <button
             type="submit"
             disabled={loading || uploadingImage}
-            className="w-full rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-black hover:bg-cyan-500"
+            className="w-full rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-black hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? 'Submitting...' : 'Submit Listing'}
+            {loading ? 'Submitting...' : uploadingImage ? 'Uploading image...' : 'Submit Listing'}
           </button>
         </form>
       </div>
