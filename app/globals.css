@@ -12,7 +12,9 @@ body {
 }
 
 body {
-  background-image: url('/homebg.png');
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    url('/homebg.png');
   background-repeat: no-repeat;
   background-position: center top;
   background-size: cover;
@@ -23,9 +25,23 @@ body {
   box-sizing: border-box;
 }
 
+/* Large desktop */
+@media (min-width: 1367px) {
+  body {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)),
+      url('/homebg.png');
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: 100% auto;
+    background-attachment: scroll;
+  }
+}
+
 /* Phone portrait */
 @media (max-width: 767px) and (orientation: portrait) {
   body {
+    background-image: url('/homebg.png');
     background-position: 68% top;
     background-size: auto 100vh;
     background-repeat: no-repeat;
@@ -43,7 +59,9 @@ body {
 /* Tablet portrait */
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: portrait) {
   body {
-    background-image: url('/homebg.png');
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+      url('/homebg.png');
     background-repeat: no-repeat;
     background-position: center top;
     background-size: cover;
@@ -54,7 +72,9 @@ body {
 /* Tablet landscape */
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
   body {
-    background-image: url('/homebg.png');
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+      url('/homebg.png');
     background-repeat: no-repeat;
     background-position: center top;
     background-size: cover;
