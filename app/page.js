@@ -306,6 +306,10 @@ export default function Page() {
     setActiveIsland('All');
     setActiveCategory('All');
     router.replace('/', { scroll: false });
+
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   const categories = fixedCategories;
@@ -416,6 +420,7 @@ export default function Page() {
               primary
               onClick={(e) => {
                 e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 resetToHome();
               }}
             >
@@ -470,7 +475,7 @@ export default function Page() {
               ))}
             </div>
 
-            <span className="ml-2 whitespace-nowrap text-[11px] text-white/45 lg:hidden">
+            <span className="ml-2 whitespace-nowrap text-sm font-medium text-white/65 lg:hidden">
               swipe →
             </span>
           </div>
@@ -532,6 +537,7 @@ export default function Page() {
                 primary
                 onClick={(e) => {
                   e.preventDefault();
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                   resetToHome();
                 }}
               >
