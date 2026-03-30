@@ -1,4 +1,4 @@
- 'use client';
+'use client';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -407,18 +407,16 @@ export default function Page() {
   return (
     <div className="min-h-screen text-white">
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-md">
-              869 To Do <span className="ml-2 text-2xl md:text-3xl">🇰🇳</span>
-            </h1>
+        <div className="mb-6 flex flex-col items-center text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-md md:text-4xl">
+            869 To Do <span className="ml-2 text-2xl md:text-3xl">🇰🇳</span>
+          </h1>
 
-            <p className="mt-2 text-white/70">
-              Events, live music, food, nightlife, and things happening in St. Kitts and Nevis.
-            </p>
-          </div>
+          <p className="mt-2 max-w-2xl text-white/70">
+            Events, live music, food, nightlife, and things happening in St. Kitts and Nevis.
+          </p>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
             <TopActionButton href="/" primary>Home</TopActionButton>
             <TopActionButton href="/submit">Submit Listing</TopActionButton>
           </div>
@@ -526,4 +524,4 @@ export default function Page() {
       </main>
     </div>
   );
-}               
+}
