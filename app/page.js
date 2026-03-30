@@ -33,6 +33,9 @@ const categoryIcons = {
   General: '•',
 };
 
+const INITIAL_VISIBLE_REGULAR = 12;
+const LOAD_MORE_COUNT = 12;
+
 function normalizeIsland(value) {
   return String(value || '')
     .toLowerCase()
@@ -190,14 +193,14 @@ function ListingCard({ item, compact = false, queryString = '' }) {
           </div>
         )}
 
-       {image ? (
-  <img
-    src={image}
-    alt={getTitle(item)}
-    loading="lazy"
-    className="h-full w-full object-cover"
-  />
-) : (
+        {image ? (
+          <img
+            src={image}
+            alt={getTitle(item)}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+        ) : (
           <div className="flex h-full items-center justify-center text-white/30">
             No image
           </div>
@@ -256,6 +259,7 @@ export default function Page() {
   const [activeIsland, setActiveIsland] = useState('All');
   const [activeCategory, setActiveCategory] = useState('All');
   const [loading, setLoading] = useState(true);
+  const [visibleRegularCount, setVisibleRegularCount] = useState(INITIAL_VISIBLE_REGULAR);
 
   useEffect(() => {
     async function loadListings() {
@@ -306,6 +310,7 @@ export default function Page() {
     setSearch('');
     setActiveIsland('All');
     setActiveCategory('All');
+    setVisibleRegularCount(INITIAL_VISIBLE_REGULAR);
     router.replace('/', { scroll: false });
 
     if (typeof window !== 'undefined') {
@@ -387,8 +392,25 @@ export default function Page() {
     });
   }, [filteredListings]);
 
-  const featuredListings = sortedListings.filter((item) => !!item.is_featured);
-  const regularListings = sortedListings.filter((item) => !item.is_featured);
+  const featuredListings = useMemo(
+    () => sortedListings.filter((item) => !!item.is_featured),
+    [sortedListings]
+  );
+
+  const regularListings = useMemo(
+    () => sortedListings.filter((item) => !item.is_featured),
+    [sortedListings]
+  );
+
+  useEffect(() => {
+    setVisibleRegularCount(INITIAL_VISIBLE_REGULAR);
+  }, [search, activeIsland, activeCategory]);
+
+  const visibleRegularListings = useMemo(() => {
+    return regularListings.slice(0, visibleRegularCount);
+  }, [regularListings, visibleRegularCount]);
+
+  const hasMoreRegularListings = visibleRegularCount < regularListings.length;
 
   const currentQueryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -517,11 +539,30 @@ export default function Page() {
               No results found{search ? ` for "${search}"` : ''}.
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {regularListings.map((item) => (
-                <ListingCard key={item.id} item={item} queryString={currentQueryString} />
-              ))}
-            </div>
+            <>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {visibleRegularListings.map((item) => (
+                  <ListingCard
+                    key={item.id}
+                    item={item}
+                    queryString={currentQueryString}
+                  />
+                ))}
+              </div>
+
+              {hasMoreRegularListings && (
+                <div className="mt-6 flex justify-center">
+                  <button
+                    onClick={() =>
+                      setVisibleRegularCount((prev) => prev + LOAD_MORE_COUNT)
+                    }
+                    className="rounded-2xl border border-white/15 bg-[rgba(8,18,42,0.84)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[rgba(12,27,58,0.96)]"
+                  >
+                    Load more
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </section>
 
