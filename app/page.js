@@ -190,13 +190,14 @@ function ListingCard({ item, compact = false, queryString = '' }) {
           </div>
         )}
 
-        {image ? (
-          <img
-            src={image}
-            alt={getTitle(item)}
-            className="h-full w-full object-cover"
-          />
-        ) : (
+       {image ? (
+  <img
+    src={image}
+    alt={getTitle(item)}
+    loading="lazy"
+    className="h-full w-full object-cover"
+  />
+) : (
           <div className="flex h-full items-center justify-center text-white/30">
             No image
           </div>
