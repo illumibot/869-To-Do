@@ -123,7 +123,7 @@ function FilterPill({ active, children, onClick, icon = null }) {
       className={[
         'rounded-full border px-4 py-2.5 text-sm font-medium transition whitespace-nowrap',
         active
-          ? 'border-[#9ed0ff]/70 bg-[#6fb6ff] text-[#04101f] shadow-[0_0_16px_rgba(111,182,255,0.22)]'
+          ? 'border-[#f7d68a]/70 bg-[#f0b13c] text-black shadow-[0_0_16px_rgba(240,177,60,0.22)]'
           : 'border-white/20 bg-[rgba(8,18,42,0.84)] text-white/92 hover:bg-[rgba(12,27,58,0.96)]',
       ].join(' ')}
     >
@@ -142,7 +142,7 @@ function TopActionButton({ href, children, primary = false }) {
       className={[
         'rounded-2xl border px-4 py-2.5 text-sm font-semibold transition',
         primary
-          ? 'border-[#9ed0ff]/70 bg-[#4da3ff] text-[#04101f] hover:brightness-110'
+          ? 'border-[#f7d68a]/70 bg-[#f0b13c] text-black hover:bg-[#e0a52f]'
           : 'border-white/15 bg-[rgba(8,18,42,0.84)] text-white hover:bg-[rgba(12,27,58,0.96)]',
       ].join(' ')}
     >
@@ -216,7 +216,7 @@ function ListingCard({ item, compact = false, queryString = '' }) {
 
         <Link
           href={href}
-          className="block w-full rounded-2xl bg-[#4da3ff] py-3 text-center font-semibold text-[#04101f] transition hover:brightness-110"
+          className="block w-full rounded-2xl bg-[#f0b13c] py-3 text-center font-semibold text-black transition hover:bg-[#e0a52f]"
         >
           Open
         </Link>
