@@ -57,7 +57,6 @@ export default function AdminPage() {
         item.price !== '' && item.price !== null && item.price !== undefined
           ? Number(item.price)
           : null,
-      status: 'approved',
     };
 
     const { error: insertError } = await supabase
