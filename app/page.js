@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 
@@ -162,10 +162,10 @@ function ListingCard({ item, compact = false, queryString = '' }) {
   return (
     <div
       className={[
-        'overflow-hidden rounded-[24px] border bg-[#071224] backdrop-blur-md',
+        'overflow-hidden rounded-[24px] border backdrop-blur-md transition duration-300',
         featured
-          ? 'border-[#f0b13c] shadow-[0_0_0_1px_rgba(240,177,60,0.35),0_0_30px_rgba(240,177,60,0.25)]'
-          : 'border-white/10 shadow-[0_10px_24px_rgba(0,0,0,0.20)]',
+          ? 'border-[#f0b13c] bg-[rgba(7,18,36,0.94)] shadow-[0_0_0_1px_rgba(240,177,60,0.35),0_0_24px_rgba(240,177,60,0.18)] hover:-translate-y-1 hover:shadow-[0_0_0_1px_rgba(240,177,60,0.45),0_0_34px_rgba(240,177,60,0.28)]'
+          : 'border-white/10 bg-[rgba(7,18,36,0.90)] shadow-[0_10px_24px_rgba(0,0,0,0.20)] hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(0,0,0,0.28)]',
       ].join(' ')}
     >
       <div className={`relative ${compact ? 'h-40' : 'h-52'} bg-slate-900`}>
@@ -188,7 +188,7 @@ function ListingCard({ item, compact = false, queryString = '' }) {
         )}
       </div>
 
-      <div className="space-y-3 bg-[#071224] p-4">
+      <div className="space-y-3 bg-[rgba(7,18,36,0.96)] p-4">
         <div className="flex flex-wrap gap-2 text-xs text-white/75">
           <span className="rounded-full bg-white/10 px-3 py-1">
             {category}
@@ -216,7 +216,12 @@ function ListingCard({ item, compact = false, queryString = '' }) {
 
         <Link
           href={href}
-          className="block w-full rounded-2xl bg-[#f0b13c] py-3 text-center font-semibold text-black transition hover:bg-[#e0a52f]"
+          className={[
+            'block w-full rounded-2xl py-3 text-center font-semibold transition',
+            featured
+              ? 'bg-[#f0b13c] text-black hover:bg-[#e0a52f]'
+              : 'bg-[#4f8ff7] text-white hover:bg-[#3e7fe8]',
+          ].join(' ')}
         >
           Open
         </Link>
@@ -229,11 +234,12 @@ export default function Page() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const didResetHomeFilters = useRef(false);
 
   const [listings, setListings] = useState([]);
-  const [search, setSearch] = useState(searchParams.get('search') || '');
-  const [activeIsland, setActiveIsland] = useState(searchParams.get('island') || 'All');
-  const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'All');
+  const [search, setSearch] = useState('');
+  const [activeIsland, setActiveIsland] = useState('All');
+  const [activeCategory, setActiveCategory] = useState('All');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -268,6 +274,17 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
+    const queryString = searchParams.toString();
+
+    if (!didResetHomeFilters.current && pathname === '/' && queryString) {
+      didResetHomeFilters.current = true;
+      setSearch('');
+      setActiveIsland('All');
+      setActiveCategory('All');
+      router.replace(pathname, { scroll: false });
+      return;
+    }
+
     const nextSearch = searchParams.get('search') || '';
     const nextIsland = searchParams.get('island') || 'All';
     const nextCategory = searchParams.get('category') || 'All';
@@ -275,7 +292,7 @@ export default function Page() {
     setSearch(nextSearch);
     setActiveIsland(nextIsland);
     setActiveCategory(nextCategory);
-  }, [searchParams]);
+  }, [searchParams, pathname, router]);
 
   function updateUrl(nextSearch, nextIsland, nextCategory) {
     const params = new URLSearchParams();
@@ -470,7 +487,7 @@ export default function Page() {
               ))}
             </div>
 
-            <span className="ml-2 whitespace-nowrap text-[11px] text-white/45">
+            <span className="ml-2 whitespace-nowrap text-[11px] text-white/45 lg:hidden">
               swipe →
             </span>
           </div>
