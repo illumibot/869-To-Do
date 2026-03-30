@@ -194,12 +194,14 @@ function ListingCard({ item, compact = false, queryString = '' }) {
         )}
 
         {image ? (
-          <img
-            src={image}
-            alt={getTitle(item)}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
+         <img
+  src={image}
+  alt={getTitle(item)}
+  loading="lazy"
+  decoding="async"
+  sizes="(max-width: 768px) 100vw, 33vw"
+  className="h-full w-full object-cover"
+/>
         ) : (
           <div className="flex h-full items-center justify-center text-white/30">
             No image
