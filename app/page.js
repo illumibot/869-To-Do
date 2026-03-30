@@ -123,7 +123,7 @@ function FilterPill({ active, children, onClick, icon = null }) {
       className={[
         'rounded-full border px-4 py-2.5 text-sm font-medium transition whitespace-nowrap',
         active
-          ? 'border-cyan-100/70 bg-[#63dff5] text-black shadow-[0_0_16px_rgba(99,223,245,0.22)]'
+          ? 'border-[#9ed0ff]/70 bg-[#6fb6ff] text-[#04101f] shadow-[0_0_16px_rgba(111,182,255,0.22)]'
           : 'border-white/20 bg-[rgba(8,18,42,0.84)] text-white/92 hover:bg-[rgba(12,27,58,0.96)]',
       ].join(' ')}
     >
@@ -142,7 +142,7 @@ function TopActionButton({ href, children, primary = false }) {
       className={[
         'rounded-2xl border px-4 py-2.5 text-sm font-semibold transition',
         primary
-          ? 'border-cyan-200/60 bg-cyan-400 text-black hover:brightness-110'
+          ? 'border-[#9ed0ff]/70 bg-[#4da3ff] text-[#04101f] hover:brightness-110'
           : 'border-white/15 bg-[rgba(8,18,42,0.84)] text-white hover:bg-[rgba(12,27,58,0.96)]',
       ].join(' ')}
     >
@@ -216,7 +216,7 @@ function ListingCard({ item, compact = false, queryString = '' }) {
 
         <Link
           href={href}
-          className="block w-full rounded-2xl bg-cyan-400 py-3 text-center font-semibold text-black transition hover:brightness-110"
+          className="block w-full rounded-2xl bg-[#4da3ff] py-3 text-center font-semibold text-[#04101f] transition hover:brightness-110"
         >
           Open
         </Link>
@@ -409,7 +409,10 @@ export default function Page() {
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
         <div className="mb-6 flex flex-col items-center text-center">
           <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-md md:text-4xl">
-            869 To Do <span className="ml-2 text-2xl md:text-3xl">🇰🇳</span>
+            869 To Do{' '}
+            <span className="ml-2 inline-block text-[1.85rem] leading-none md:text-[2.2rem]">
+              🇰🇳
+            </span>
           </h1>
 
           <p className="mt-2 max-w-2xl text-white/70">
@@ -422,7 +425,7 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="mb-6 rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.78)] px-4 py-4 backdrop-blur-md">
+        <div className="mb-6 rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.72)] px-4 py-4 backdrop-blur-md">
           <input
             type="text"
             placeholder="Search events, venues, food, music..."
@@ -514,6 +517,20 @@ export default function Page() {
               ))}
             </div>
           )}
+        </section>
+
+        <section className="mt-12">
+          <div className="rounded-[24px] border border-white/10 bg-[rgba(5,16,37,0.72)] px-5 py-6 text-center backdrop-blur-md">
+            <h3 className="text-lg font-semibold text-white">About 869 To Do</h3>
+            <p className="mx-auto mt-2 max-w-2xl text-sm text-white/70">
+              869 To Do is a simple local guide for events, food, nightlife, music, tours, and places worth checking out in St. Kitts and Nevis.
+            </p>
+
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              <TopActionButton href="/" primary>Home</TopActionButton>
+              <TopActionButton href="/submit">Submit Listing</TopActionButton>
+            </div>
+          </div>
         </section>
       </main>
     </div>
