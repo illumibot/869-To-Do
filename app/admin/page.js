@@ -88,31 +88,6 @@ export default function AdminPage() {
     setProcessingId(null);
   }
 
-  async function deleteSubmission(id) {
-    if (!id) return;
-
-    const confirmed = window.confirm('Delete this submission?');
-    if (!confirmed) return;
-
-    setProcessingId(id);
-    setError('');
-
-    const { error } = await supabase
-      .from('listing_submissions')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error deleting submission:', error);
-      setError(`Could not delete submission: ${error.message}`);
-      setProcessingId(null);
-      return;
-    }
-
-    setSubmissions((prev) => prev.filter((submission) => submission.id !== id));
-    setProcessingId(null);
-  }
-
   if (loading) {
     return (
       <main className="min-h-screen bg-[#020b18] text-white px-4 py-6">
@@ -159,82 +134,45 @@ export default function AdminPage() {
                       </h2>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm text-white/80 mb-4">
-                        <p>
-                          <span className="text-white font-medium">Category:</span>{' '}
-                          {item.category || '—'}
-                        </p>
-                        <p>
-                          <span className="text-white font-medium">Island:</span>{' '}
-                          {item.island || '—'}
-                        </p>
-                        <p>
-                          <span className="text-white font-medium">Location:</span>{' '}
-                          {item.location || '—'}
-                        </p>
-                        <p>
-                          <span className="text-white font-medium">Phone:</span>{' '}
-                          {item.phone || '—'}
-                        </p>
-                        <p>
-                          <span className="text-white font-medium">Price:</span>{' '}
-                          {item.price ?? '—'}
-                        </p>
-                        <p>
-                          <span className="text-white font-medium">Start Date:</span>{' '}
-                          {item.start_date ? new Date(item.start_date).toLocaleString() : '—'}
-                        </p>
-                        <p>
-                          <span className="text-white font-medium">End Date:</span>{' '}
-                          {item.end_date
-                            ? new Date(item.end_date).toLocaleString()
-                            : 'Optional / none'}
-                        </p>
+                        <p><span className="text-white font-medium">Category:</span> {item.category || '—'}</p>
+                        <p><span className="text-white font-medium">Island:</span> {item.island || '—'}</p>
+                        <p><span className="text-white font-medium">Location:</span> {item.location || '—'}</p>
+                        <p><span className="text-white font-medium">Phone:</span> {item.phone || '—'}</p>
+                        <p><span className="text-white font-medium">Price:</span> {item.price ?? '—'}</p>
+                        <p><span className="text-white font-medium">Start Date:</span> {item.start_date ? new Date(item.start_date).toLocaleString() : '—'}</p>
+                        <p><span className="text-white font-medium">End Date:</span> {item.end_date ? new Date(item.end_date).toLocaleString() : 'Optional / none'}</p>
                       </div>
 
                       <div className="mb-4">
                         <span className="text-white font-medium block mb-2">Image:</span>
                         {item.image_url ? (
-                          <a
-                            href={item.image_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block"
-                          >
-                            <img
-                              src={item.image_url}
-                              alt={item.title || 'Listing image'}
-                              className="w-40 h-28 object-cover rounded-lg border border-white/10 hover:opacity-90 transition"
-                            />
-                          </a>
+                          <img
+                            src={item.image_url}
+                            alt={item.title || 'Listing image'}
+                            className="w-40 h-28 object-cover rounded-lg border border-white/10"
+                          />
                         ) : (
                           <span className="text-white/60">—</span>
                         )}
                       </div>
 
-                      {item.description ? (
+                      {item.description && (
                         <div className="rounded-xl bg-white/5 border border-white/10 p-3 text-sm text-white/85 whitespace-pre-wrap">
                           {item.description}
                         </div>
-                      ) : null}
+                      )}
                     </div>
 
-                    <div className="flex flex-row md:flex-col gap-2 md:min-w-[160px]">
+                    <div className="flex md:flex-col gap-2 md:min-w-[160px]">
                       <button
                         onClick={() => approveSubmission(item)}
                         disabled={isProcessing}
-                        className="flex-1 md:flex-none rounded-xl bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 font-medium transition"
+                        className="w-full rounded-xl bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 font-medium transition"
                       >
                         {isProcessing ? 'Processing...' : 'Approve'}
                       </button>
-
-                      <button
-                        onClick={() => deleteSubmission(item.id)}
-                        disabled={isProcessing}
-                        className="flex-1 md:flex-none rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 font-medium transition"
-                      >
-                        Delete
-                      </button>
                     </div>
+
                   </div>
                 </div>
               );
