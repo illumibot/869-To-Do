@@ -133,17 +133,6 @@ function formatPhone(phone) {
   return String(phone);
 }
 
-function getWhatsAppLink(phone) {
-  const digits = phoneDigitsOnly(phone);
-  if (!digits) return '';
-
-  if (digits.startsWith('1')) return `https://wa.me/${digits}`;
-  if (digits.length === 10) return `https://wa.me/1${digits}`;
-  if (digits.length === 7) return `https://wa.me/1869${digits}`;
-
-  return `https://wa.me/${digits}`;
-}
-
 export default function ListingDetailPage() {
   const params = useParams();
   const id = params?.id;
@@ -219,7 +208,6 @@ export default function ListingDetailPage() {
   const phone = getPhone(listing);
   const formattedPhone = formatPhone(phone);
   const telPhone = cleanPhone(phone);
-  const whatsappLink = getWhatsAppLink(phone);
   const featured = !!listing.is_featured;
 
   return (
@@ -320,15 +308,6 @@ export default function ListingDetailPage() {
                     className="inline-flex items-center rounded-xl bg-[#4f8ff7] px-4 py-3 font-semibold text-white hover:bg-[#3e7fe8]"
                   >
                     Call {formattedPhone}
-                  </a>
-
-                  <a
-                    href={whatsappLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center rounded-xl border border-green-400/40 bg-green-500/15 px-4 py-3 font-semibold text-green-300 hover:bg-green-500/25"
-                  >
-                    WhatsApp
                   </a>
                 </div>
               </div>
