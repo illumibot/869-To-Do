@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useRef, useState } from 'react';
-import imageCompression from 'browser-image-compression';
 import { supabase } from '../../lib/supabase';
 
 const categoryOptions = [
@@ -58,6 +57,76 @@ function normalizePhone(areaCode, phone) {
   return cleanPhone;
 }
 
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(img);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Could not read image file.'));
+    };
+
+    img.src = objectUrl;
+  });
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Could not create compressed image.'));
+      },
+      type,
+      quality
+    );
+  });
+}
+
+async function compressImage(file) {
+  const img = await loadImageFromFile(file);
+
+  const maxWidth = 1400;
+  const maxHeight = 1400;
+
+  let { width, height } = img;
+
+  if (width > maxWidth || height > maxHeight) {
+    const ratio = Math.min(maxWidth / width, maxHeight / height);
+    width = Math.round(width * ratio);
+    height = Math.round(height * ratio);
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Could not compress image.');
+  }
+
+  ctx.drawImage(img, 0, 0, width, height);
+
+  let quality = 0.82;
+  let blob = await canvasToBlob(canvas, 'image/jpeg', quality);
+
+  const maxBytes = 200 * 1024;
+
+  while (blob.size > maxBytes && quality > 0.45) {
+    quality -= 0.08;
+    blob = await canvasToBlob(canvas, 'image/jpeg', quality);
+  }
+
+  return blob;
+}
+
 export default function SubmitPage() {
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
@@ -94,22 +163,16 @@ export default function SubmitPage() {
 
     setUploadingImage(true);
     setError('');
+    setMessage('');
 
     try {
-      const compressionOptions = {
-        maxSizeMB: 0.2, // about 200 KB target
-        maxWidthOrHeight: 1400,
-        useWebWorker: true,
-        initialQuality: 0.8,
-      };
-
-      const compressedFile = await imageCompression(file, compressionOptions);
+      const compressedBlob = await compressImage(file);
 
       const originalBase = file.name.replace(/\.[^/.]+$/, '');
       const safeBase = originalBase.replace(/\s+/g, '-').toLowerCase();
       const fileName = `${Date.now()}-${safeBase}.jpg`;
 
-      const uploadFile = new File([compressedFile], fileName, {
+      const uploadFile = new File([compressedBlob], fileName, {
         type: 'image/jpeg',
       });
 
