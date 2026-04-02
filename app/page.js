@@ -194,14 +194,14 @@ function ListingCard({ item, compact = false, queryString = '' }) {
         )}
 
         {image ? (
-         <img
-  src={image}
-  alt={getTitle(item)}
-  loading="lazy"
-  decoding="async"
-  sizes="(max-width: 768px) 100vw, 33vw"
-  className="h-full w-full object-cover"
-/>
+          <img
+            src={image}
+            alt={getTitle(item)}
+            loading="lazy"
+            decoding="async"
+            sizes="(max-width: 768px) 100vw, 33vw"
+            className="h-full w-full object-cover"
+          />
         ) : (
           <div className="flex h-full items-center justify-center text-white/30">
             No image
@@ -267,9 +267,12 @@ export default function Page() {
     async function loadListings() {
       setLoading(true);
 
+      const nowIso = new Date().toISOString();
+
       const { data, error } = await supabase
         .from('listings')
         .select('*')
+        .or(`end_date.is.null,end_date.eq.,end_date.gte.${nowIso}`)
         .order('is_featured', { ascending: false })
         .order('start_time', { ascending: true });
 
