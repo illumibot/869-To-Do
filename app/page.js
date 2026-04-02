@@ -263,29 +263,39 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [visibleRegularCount, setVisibleRegularCount] = useState(INITIAL_VISIBLE_REGULAR);
 
-  useEffect(() => {
-    async function loadListings() {
-      setLoading(true);
+ useEffect(() => {
+  async function loadListings() {
+    setLoading(true);
 
-      const { data, error } = await supabase
-        .from('listings')
-        .select('*')
-        .order('is_featured', { ascending: false })
-        .order('start_time', { ascending: true });
+    const { data, error } = await supabase
+      .from('listings')
+      .select('*')
+      .order('is_featured', { ascending: false })
+      .order('start_time', { ascending: true });
 
-      if (error) {
-        console.error('Error loading listings:', error);
-        setListings([]);
-        setLoading(false);
-        return;
-      }
-
-      setListings(data || []);
+    if (error) {
+      console.error('Error loading listings:', error);
+      setListings([]);
       setLoading(false);
+      return;
     }
 
+    setListings(data || []);
+    setLoading(false);
+  }
+
+  loadListings();
+
+  function handleFocus() {
     loadListings();
-  }, []);
+  }
+
+  window.addEventListener('focus', handleFocus);
+
+  return () => {
+    window.removeEventListener('focus', handleFocus);
+  };
+}, []);
 
   useEffect(() => {
     const nextSearch = searchParams.get('search') || '';
