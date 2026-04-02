@@ -50,76 +50,45 @@ function normalizePhone(areaCode, phone) {
     return `+1${cleanAreaCode}${cleanPhone}`;
   }
 
-  if (cleanAreaCode) {
-    return `+1${cleanAreaCode}${cleanPhone}`;
-  }
-
-  return cleanPhone;
-}
-
-function loadImageFromFile(file) {
-  return new Promise((resolve, reject) => {
-    const objectUrl = URL.createObjectURL(file);
-    const img = new Image();
-
-    img.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve(img);
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error('Could not read image file.'));
-    };
-
-    img.src = objectUrl;
-  });
-}
-
-function canvasToBlob(canvas, type, quality) {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error('Could not create compressed image.'));
-      },
-      type,
-      quality
-    );
-  });
+  return `+1${cleanAreaCode}${cleanPhone}`;
 }
 
 async function compressImage(file) {
-  const img = await loadImageFromFile(file);
+  const img = await new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const i = new Image();
+    i.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(i);
+    };
+    i.onerror = reject;
+    i.src = url;
+  });
 
-  const maxWidth = 1400;
-  const maxHeight = 1400;
-
+  const max = 1400;
   let { width, height } = img;
 
-  if (width > maxWidth || height > maxHeight) {
-    const ratio = Math.min(maxWidth / width, maxHeight / height);
-    width = Math.round(width * ratio);
-    height = Math.round(height * ratio);
-  }
+  const ratio = Math.min(max / width, max / height, 1);
+  width *= ratio;
+  height *= ratio;
 
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
 
   const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Could not compress image.');
-
   ctx.drawImage(img, 0, 0, width, height);
 
-  let quality = 0.82;
-  let blob = await canvasToBlob(canvas, 'image/jpeg', quality);
+  let quality = 0.8;
+  let blob = await new Promise((res) =>
+    canvas.toBlob(res, 'image/jpeg', quality)
+  );
 
-  const maxBytes = 200 * 1024;
-
-  while (blob.size > maxBytes && quality > 0.45) {
-    quality -= 0.08;
-    blob = await canvasToBlob(canvas, 'image/jpeg', quality);
+  while (blob.size > 200 * 1024 && quality > 0.5) {
+    quality -= 0.05;
+    blob = await new Promise((res) =>
+      canvas.toBlob(res, 'image/jpeg', quality)
+    );
   }
 
   return blob;
@@ -139,17 +108,11 @@ export default function SubmitPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function openNativePicker(ref) {
+  function openPicker(ref) {
     const input = ref.current;
     if (!input) return;
-
     input.focus();
-
-    if (typeof input.showPicker === 'function') {
-      try {
-        input.showPicker();
-      } catch {}
-    }
+    input.showPicker?.();
   }
 
   async function handleImageUpload(e) {
@@ -157,26 +120,23 @@ export default function SubmitPage() {
     if (!file) return;
 
     setUploadingImage(true);
-    setError('');
-    setMessage('');
 
     try {
-      const compressedBlob = await compressImage(file);
+      const blob = await compressImage(file);
+      const fileName = `${Date.now()}.jpg`;
 
-      const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-').toLowerCase()}.jpg`;
-
-      const uploadFile = new File([compressedBlob], fileName, {
+      const uploadFile = new File([blob], fileName, {
         type: 'image/jpeg',
       });
 
-      const { error: uploadError } = await supabase.storage
+      const { error } = await supabase.storage
         .from('listing-images')
-       .upload(fileName, uploadFile, {
-  contentType: 'image/jpeg',
-  upsert: false,
-});
+        .upload(fileName, uploadFile, {
+          contentType: 'image/jpeg',
+          upsert: false,
+        });
 
-      if (uploadError) throw uploadError;
+      if (error) throw error;
 
       const { data } = supabase.storage
         .from('listing-images')
@@ -184,7 +144,7 @@ export default function SubmitPage() {
 
       updateField('image_url', data.publicUrl);
     } catch (err) {
-      setError(err.message || 'Upload failed');
+      setError('Image upload failed');
     } finally {
       setUploadingImage(false);
     }
@@ -194,7 +154,6 @@ export default function SubmitPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setMessage('');
 
     const payload = {
       ...form,
@@ -205,7 +164,9 @@ export default function SubmitPage() {
       status: 'pending',
     };
 
-    const { error } = await supabase.from('listing_submissions').insert([payload]);
+    const { error } = await supabase
+      .from('listing_submissions')
+      .insert([payload]);
 
     if (error) {
       setError(error.message);
@@ -239,12 +200,46 @@ export default function SubmitPage() {
             className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
           />
 
+          <select
+            value={form.category}
+            onChange={(e) => updateField('category', e.target.value)}
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
+          >
+            {categoryOptions.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+
+          <select
+            value={form.island}
+            onChange={(e) => updateField('island', e.target.value)}
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
+          >
+            {islandOptions.map((i) => (
+              <option key={i}>{i}</option>
+            ))}
+          </select>
+
           <input
             placeholder="Location"
             value={form.location}
             onChange={(e) => updateField('location', e.target.value)}
             className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
           />
+
+          <div className="flex gap-2">
+            <input
+              value={form.area_code}
+              onChange={(e) => updateField('area_code', e.target.value)}
+              className="w-20 rounded-xl border border-white/30 bg-black/60 px-2 py-3"
+            />
+            <input
+              placeholder="Phone"
+              value={form.phone}
+              onChange={(e) => updateField('phone', e.target.value)}
+              className="flex-1 rounded-xl border border-white/30 bg-black/60 px-4 py-3"
+            />
+          </div>
 
           <input type="file" onChange={handleImageUpload} />
 
@@ -254,7 +249,7 @@ export default function SubmitPage() {
               type="datetime-local"
               value={form.start_date}
               onChange={(e) => updateField('start_date', e.target.value)}
-              onFocus={() => openNativePicker(startDateRef)}
+              onFocus={() => openPicker(startDateRef)}
               className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm"
             />
 
@@ -263,7 +258,7 @@ export default function SubmitPage() {
               type="datetime-local"
               value={form.end_date}
               onChange={(e) => updateField('end_date', e.target.value)}
-              onFocus={() => openNativePicker(endDateRef)}
+              onFocus={() => openPicker(endDateRef)}
               className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm"
             />
           </div>
@@ -281,8 +276,7 @@ export default function SubmitPage() {
 
           <button
             type="submit"
-            disabled={loading || uploadingImage}
-            className="w-full rounded-xl bg-amber-400 px-4 py-3 font-semibold text-black hover:bg-amber-500"
+            className="w-full rounded-xl bg-amber-400 px-4 py-3 font-semibold text-black"
           >
             {loading ? 'Submitting...' : 'Submit Listing'}
           </button>
