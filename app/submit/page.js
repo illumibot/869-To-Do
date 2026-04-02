@@ -108,9 +108,7 @@ async function compressImage(file) {
   canvas.height = height;
 
   const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    throw new Error('Could not compress image.');
-  }
+  if (!ctx) throw new Error('Could not compress image.');
 
   ctx.drawImage(img, 0, 0, width, height);
 
@@ -138,10 +136,7 @@ export default function SubmitPage() {
   const endDateRef = useRef(null);
 
   function updateField(name, value) {
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   }
 
   function openNativePicker(ref) {
@@ -168,9 +163,7 @@ export default function SubmitPage() {
     try {
       const compressedBlob = await compressImage(file);
 
-      const originalBase = file.name.replace(/\.[^/.]+$/, '');
-      const safeBase = originalBase.replace(/\s+/g, '-').toLowerCase();
-      const fileName = `${Date.now()}-${safeBase}.jpg`;
+      const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-').toLowerCase()}.jpg`;
 
       const uploadFile = new File([compressedBlob], fileName, {
         type: 'image/jpeg',
@@ -178,16 +171,12 @@ export default function SubmitPage() {
 
       const { error: uploadError } = await supabase.storage
         .from('listing-images')
-        .upload(fileName, uploadFile, {
-          contentType: 'image/jpeg',
-          upsert: false,
-        });
+       .upload(fileName, uploadFile, {
+  contentType: 'image/jpeg',
+  upsert: false,
+});
 
-      if (uploadError) {
-        setError(uploadError.message);
-        setUploadingImage(false);
-        return;
-      }
+      if (uploadError) throw uploadError;
 
       const { data } = supabase.storage
         .from('listing-images')
@@ -195,7 +184,7 @@ export default function SubmitPage() {
 
       updateField('image_url', data.publicUrl);
     } catch (err) {
-      setError(err?.message || 'Image compression/upload failed.');
+      setError(err.message || 'Upload failed');
     } finally {
       setUploadingImage(false);
     }
@@ -204,20 +193,15 @@ export default function SubmitPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
     setError('');
+    setMessage('');
 
     const payload = {
-      title: form.title,
-      category: form.category,
-      island: form.island,
-      location: form.location,
-      description: form.description,
-      image_url: form.image_url,
+      ...form,
+      phone: normalizePhone(form.area_code, form.phone),
       start_date: form.start_date || null,
       end_date: form.end_date || null,
-      phone: normalizePhone(form.area_code, form.phone),
-      price: form.price === '' ? null : Number(form.price),
+      price: form.price ? Number(form.price) : null,
       status: 'pending',
     };
 
@@ -225,207 +209,82 @@ export default function SubmitPage() {
 
     if (error) {
       setError(error.message);
-      setLoading(false);
-      return;
+    } else {
+      setMessage('Submitted! Awaiting approval.');
+      setForm(initialForm);
     }
 
-    setMessage('Submitted! Awaiting approval.');
-    setForm(initialForm);
     setLoading(false);
   }
 
   return (
     <main className="min-h-screen px-4 py-10 text-white">
       <div className="mx-auto max-w-xl">
-        <div className="mb-6">
-          <p className="text-sm text-cyan-300/80">869 To Do</p>
-          <h1 className="flex items-center gap-2 text-3xl font-bold">
-            <span>Submit a Listing</span>
-            <span>🇰🇳</span>
-          </h1>
-        </div>
-
-        <Link
-          href="/"
-          className="rounded-xl border border-white/20 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
-        >
-          Back
-        </Link>
-
-        <p className="mb-6 mt-6 text-sm text-white/75">
-          Submit an event, food listing, live music, tour, promotion, or other listing.
-          Submissions do not go live automatically.
-        </p>
-
-        <div className="mb-6 rounded-xl border border-amber-400/30 bg-black/40 px-4 py-3 text-sm text-amber-200 backdrop-blur-md">
-          Want a featured listing? Featured placement is arranged separately. Contact us at{' '}
-          <a
-            href="mailto:info@869todo.com"
-            className="underline hover:text-white"
-          >
-            info@869todo.com
-          </a>
-          .
-        </div>
+        <h1 className="text-3xl font-bold mb-6">Submit a Listing 🇰🇳</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+
           <input
-            name="title"
             placeholder="Title"
             value={form.title}
             onChange={(e) => updateField('title', e.target.value)}
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
             required
-            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white placeholder-white/60 backdrop-blur-md focus:border-cyan-400 focus:outline-none"
           />
 
           <textarea
-            name="description"
             placeholder="Description"
             value={form.description}
             onChange={(e) => updateField('description', e.target.value)}
-            rows={3}
-            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white placeholder-white/60 backdrop-blur-md focus:border-cyan-400 focus:outline-none"
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
           />
 
-          <select
-            name="category"
-            value={form.category}
-            onChange={(e) => updateField('category', e.target.value)}
-            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-          >
-            {categoryOptions.map((opt) => (
-              <option key={opt}>{opt}</option>
-            ))}
-          </select>
-
-          <select
-            name="island"
-            value={form.island}
-            onChange={(e) => updateField('island', e.target.value)}
-            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-          >
-            {islandOptions.map((opt) => (
-              <option key={opt}>{opt}</option>
-            ))}
-          </select>
-
           <input
-            name="location"
             placeholder="Location"
             value={form.location}
             onChange={(e) => updateField('location', e.target.value)}
-            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white placeholder-white/60 backdrop-blur-md focus:border-cyan-400 focus:outline-none"
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
           />
 
-          <div>
-            <label className="mb-1 block text-sm text-white/70">Phone Number</label>
-            <div className="flex gap-2">
-              <div className="w-28 rounded-xl border border-white/30 bg-black/60 px-3 py-3 text-white backdrop-blur-md">
-                <div className="flex items-center gap-1">
-                  <span className="text-white/70">+1</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={3}
-                    value={form.area_code}
-                    onChange={(e) =>
-                      updateField('area_code', e.target.value.replace(/\D/g, '').slice(0, 3))
-                    }
-                    className="w-full bg-transparent text-white focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <input
-                type="tel"
-                name="phone"
-                placeholder="123 4567"
-                value={form.phone}
-                onChange={(e) => updateField('phone', e.target.value)}
-                className="flex-1 rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white placeholder-white/50 backdrop-blur-md focus:border-cyan-400 focus:outline-none"
-              />
-            </div>
-
-            <p className="mt-1 text-xs text-white/50">
-              Enter the 7-digit local number. Change the area code if needed.
-            </p>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm text-white/70">Upload Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="w-full text-sm"
-            />
-            {uploadingImage && (
-              <p className="mt-2 text-sm text-cyan-300">Compressing and uploading...</p>
-            )}
-            {form.image_url && (
-              <img
-                src={form.image_url}
-                alt="Preview"
-                className="mt-3 max-h-60 rounded-xl object-cover"
-              />
-            )}
-          </div>
+          <input type="file" onChange={handleImageUpload} />
 
           <div className="flex flex-col gap-3">
-            <div>
-              <label className="mb-1 block text-sm text-white/70">
-                Start Date & Time
-              </label>
-              <input
-                ref={startDateRef}
-                type="datetime-local"
-                name="start_date"
-                value={form.start_date}
-                onChange={(e) => updateField('start_date', e.target.value)}
-                onFocus={() => openNativePicker(startDateRef)}
-                onClick={() => openNativePicker(startDateRef)}
-               className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none appearance-none"
-            </div>
+            <input
+              ref={startDateRef}
+              type="datetime-local"
+              value={form.start_date}
+              onChange={(e) => updateField('start_date', e.target.value)}
+              onFocus={() => openNativePicker(startDateRef)}
+              className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm"
+            />
 
-            <div>
-              <label className="mb-1 block text-sm text-white/70">
-                End Date & Time (optional)
-              </label>
-              <input
-                ref={endDateRef}
-                type="datetime-local"
-                name="end_date"
-                value={form.end_date}
-                onChange={(e) => updateField('end_date', e.target.value)}
-                onFocus={() => openNativePicker(endDateRef)}
-                onClick={() => openNativePicker(endDateRef)}
-               className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none appearance-none"
-            </div>
+            <input
+              ref={endDateRef}
+              type="datetime-local"
+              value={form.end_date}
+              onChange={(e) => updateField('end_date', e.target.value)}
+              onFocus={() => openNativePicker(endDateRef)}
+              className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm"
+            />
           </div>
 
           <input
             type="number"
-            name="price"
             placeholder="Price (EC)"
             value={form.price}
             onChange={(e) => updateField('price', e.target.value)}
-            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white placeholder-white/60 focus:border-cyan-400 focus:outline-none"
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
           />
 
-          {message && (
-            <div className="text-sm text-green-400">{message}</div>
-          )}
-
-          {error && (
-            <div className="text-sm text-red-400">{error}</div>
-          )}
+          {message && <p className="text-green-400">{message}</p>}
+          {error && <p className="text-red-400">{error}</p>}
 
           <button
             type="submit"
             disabled={loading || uploadingImage}
-            className="w-full rounded-xl bg-amber-400 px-4 py-3 font-semibold text-black hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-xl bg-amber-400 px-4 py-3 font-semibold text-black hover:bg-amber-500"
           >
-            {loading ? 'Submitting...' : uploadingImage ? 'Uploading image...' : 'Submit Listing'}
+            {loading ? 'Submitting...' : 'Submit Listing'}
           </button>
         </form>
       </div>
