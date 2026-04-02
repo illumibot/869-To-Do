@@ -245,23 +245,29 @@ export default function SubmitPage() {
 
         <div className="flex flex-col gap-3">
 
- <input
+<input
   ref={startDateRef}
   type="datetime-local"
   value={form.start_date}
   onChange={(e) => updateField('start_date', e.target.value)}
-  onClick={(e) => e.target.showPicker?.()}
-  onFocus={(e) => e.target.showPicker?.()}
+  onClick={(e) => {
+    if (window.innerWidth > 768) {
+      e.target.showPicker?.();
+    }
+  }}
   className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
 />
 
- <input
+<input
   ref={endDateRef}
   type="datetime-local"
   value={form.end_date}
   onChange={(e) => updateField('end_date', e.target.value)}
-  onClick={(e) => e.target.showPicker?.()}
-  onFocus={(e) => e.target.showPicker?.()}
+  onClick={(e) => {
+    if (window.innerWidth > 768) {
+      e.target.showPicker?.();
+    }
+  }}
   className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
 />
 
