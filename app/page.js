@@ -267,13 +267,12 @@ export default function Page() {
     async function loadListings() {
       setLoading(true);
 
-      const nowIso = new Date().toISOString();
+      const { data, error } = await supabase
+        .from('listings')
+        .select('*')
+        .order('is_featured', { ascending: false })
+        .order('start_time', { ascending: true });
 
-    const { data, error } = await supabase
-  .from('listings')
-  .select('*')
-  .order('is_featured', { ascending: false })
-  .order('start_time', { ascending: true });
       if (error) {
         console.error('Error loading listings:', error);
         setListings([]);
@@ -323,11 +322,52 @@ export default function Page() {
 
   const categories = fixedCategories;
 
-const { data, error } = await supabase
-  .from('listings')
-  .select('*')
-  .order('is_featured', { ascending: false })
-  .order('start_time', { ascending: true });
+  const filteredListings = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const now = new Date();
+
+    return listings.filter((item) => {
+      const title = getTitle(item).toLowerCase();
+      const description = getDescription(item).toLowerCase();
+      const location = getLocation(item).toLowerCase();
+      const category = getCategory(item);
+      const island = getIsland(item);
+
+      const rawEnd = item.end_date || '';
+      const rawStart = getDate(item);
+
+      const endDate = rawEnd ? new Date(rawEnd) : null;
+      const startDate = rawStart ? new Date(rawStart) : null;
+
+      const validEnd = endDate && !Number.isNaN(endDate.getTime());
+      const validStart = startDate && !Number.isNaN(startDate.getTime());
+
+      const isTimeBasedCategory = ['Events', 'Music', 'Nightlife', 'Sports'].includes(category);
+
+      const notExpired = !isTimeBasedCategory
+        ? true
+        : validEnd
+          ? endDate >= now
+          : validStart
+            ? startDate >= now
+            : true;
+
+      const matchesSearch =
+        !q ||
+        title.includes(q) ||
+        description.includes(q) ||
+        location.includes(q) ||
+        category.toLowerCase().includes(q);
+
+      const matchesIsland =
+        activeIsland === 'All' || island === activeIsland;
+
+      const matchesCategory =
+        activeCategory === 'All' || category === activeCategory;
+
+      return notExpired && matchesSearch && matchesIsland && matchesCategory;
+    });
+  }, [listings, search, activeIsland, activeCategory]);
 
   const sortedListings = useMemo(() => {
     const now = new Date();
