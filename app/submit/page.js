@@ -371,7 +371,7 @@ export default function SubmitPage() {
             )}
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             <div>
               <label className="mb-1 block text-sm text-white/70">
                 Start Date & Time
@@ -384,7 +384,7 @@ export default function SubmitPage() {
                 onChange={(e) => updateField('start_date', e.target.value)}
                 onFocus={() => openNativePicker(startDateRef)}
                 onClick={() => openNativePicker(startDateRef)}
-                className="w-full max-w-md rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+                className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none sm:max-w-md"
               />
             </div>
 
@@ -400,7 +400,7 @@ export default function SubmitPage() {
                 onChange={(e) => updateField('end_date', e.target.value)}
                 onFocus={() => openNativePicker(endDateRef)}
                 onClick={() => openNativePicker(endDateRef)}
-                className="w-full max-w-md rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+                className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none sm:max-w-md"
               />
             </div>
           </div>
@@ -425,7 +425,7 @@ export default function SubmitPage() {
           <button
             type="submit"
             disabled={loading || uploadingImage}
-            className="w-full rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-black hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-xl bg-amber-400 px-4 py-3 font-semibold text-black hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Submitting...' : uploadingImage ? 'Uploading image...' : 'Submit Listing'}
           </button>
