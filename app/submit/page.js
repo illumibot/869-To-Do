@@ -19,8 +19,8 @@ const islandOptions = ['St. Kitts', 'Nevis'];
 
 const initialForm = {
   title: '',
-  category: 'Events',
-  island: 'St. Kitts',
+  category: '',
+  island: '',
   location: '',
   description: '',
   image_url: '',
@@ -135,7 +135,7 @@ export default function SubmitPage() {
         .getPublicUrl(fileName);
 
       updateField('image_url', data.publicUrl);
-    } catch (err) {
+    } catch {
       setError('Image upload failed');
     } finally {
       setUploadingImage(false);
@@ -195,20 +195,26 @@ export default function SubmitPage() {
           <select
             value={form.category}
             onChange={(e) => updateField('category', e.target.value)}
-            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white"
           >
+            <option value="" disabled>
+              Select Category
+            </option>
             {categoryOptions.map((c) => (
-              <option key={c}>{c}</option>
+              <option key={c} value={c}>{c}</option>
             ))}
           </select>
 
           <select
             value={form.island}
             onChange={(e) => updateField('island', e.target.value)}
-            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
+            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white"
           >
+            <option value="" disabled>
+              Select Island
+            </option>
             {islandOptions.map((i) => (
-              <option key={i}>{i}</option>
+              <option key={i} value={i}>{i}</option>
             ))}
           </select>
 
@@ -219,7 +225,6 @@ export default function SubmitPage() {
             className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
           />
 
-          {/* PHONE */}
           <div className="flex gap-2">
             <input
               value={form.area_code}
@@ -234,7 +239,6 @@ export default function SubmitPage() {
             />
           </div>
 
-          {/* IMAGE */}
           <div>
             <label className="text-sm text-white/80 block mb-1">
               Upload Image
@@ -242,7 +246,6 @@ export default function SubmitPage() {
             <input type="file" onChange={handleImageUpload} />
           </div>
 
-          {/* DATES */}
           <div className="flex flex-col gap-3">
 
             <div>
@@ -250,7 +253,6 @@ export default function SubmitPage() {
                 Start Date & Time
               </label>
               <input
-                ref={startDateRef}
                 type="datetime-local"
                 value={form.start_date}
                 onChange={(e) => updateField('start_date', e.target.value)}
@@ -268,7 +270,6 @@ export default function SubmitPage() {
                 End Date & Time (optional)
               </label>
               <input
-                ref={endDateRef}
                 type="datetime-local"
                 value={form.end_date}
                 onChange={(e) => updateField('end_date', e.target.value)}
