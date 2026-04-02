@@ -243,25 +243,35 @@ export default function SubmitPage() {
 
           <input type="file" onChange={handleImageUpload} />
 
-          <div className="flex flex-col gap-3">
-            <input
-              ref={startDateRef}
-              type="datetime-local"
-              value={form.start_date}
-              onChange={(e) => updateField('start_date', e.target.value)}
-              onFocus={() => openPicker(startDateRef)}
-              className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm"
-            />
+        <div className="flex flex-col gap-3">
 
-            <input
-              ref={endDateRef}
-              type="datetime-local"
-              value={form.end_date}
-              onChange={(e) => updateField('end_date', e.target.value)}
-              onFocus={() => openPicker(endDateRef)}
-              className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm"
-            />
-          </div>
+  <div>
+    <label className="text-xs text-white/70 block mb-1">
+      Start Date & Time
+    </label>
+    <input
+      ref={startDateRef}
+      type="datetime-local"
+      value={form.start_date}
+      onChange={(e) => updateField('start_date', e.target.value)}
+      className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
+    />
+  </div>
+
+  <div>
+    <label className="text-xs text-white/70 block mb-1">
+      End Date & Time (optional)
+    </label>
+    <input
+      ref={endDateRef}
+      type="datetime-local"
+      value={form.end_date}
+      onChange={(e) => updateField('end_date', e.target.value)}
+      className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
+    />
+  </div>
+
+</div>
 
           <input
             type="number"
