@@ -167,7 +167,7 @@ export default function AdminPage() {
               return (
                 <div
                   key={item.id}
-                 className="rounded-2xl border border-white/10 bg-white/5 p-4 md:p-5"
+                  className="rounded-2xl border border-white/10 bg-white/5 p-4 md:p-5"
                 >
                   <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div className="flex-1">
@@ -181,8 +181,8 @@ export default function AdminPage() {
                         <p><span className="text-white font-medium">Location:</span> {item.location || '—'}</p>
                         <p><span className="text-white font-medium">Phone:</span> {item.phone || '—'}</p>
                         <p><span className="text-white font-medium">Price:</span> {item.price ?? '—'}</p>
-                        <p><span className="text-white font-medium">Start Date:</span> {item.start_date ? new Date(item.start_date).toLocaleString() : '—'}</p>
-                        <p><span className="text-white font-medium">End Date:</span> {item.end_date ? new Date(item.end_date).toLocaleString() : 'Optional / none'}</p>
+                        <p><span className="text-white font-medium">Start Date:</span> {item.start_date || '—'}</p>
+                        <p><span className="text-white font-medium">End Date:</span> {item.end_date || 'Optional / none'}</p>
                       </div>
 
                       <div className="mb-4">
@@ -191,6 +191,9 @@ export default function AdminPage() {
                           <img
                             src={item.image_url}
                             alt={item.title || 'Listing image'}
+                            loading="lazy"
+                            decoding="async"
+                            sizes="160px"
                             className="w-40 h-28 object-cover rounded-lg border border-white/10"
                           />
                         ) : (
@@ -255,6 +258,9 @@ export default function AdminPage() {
                           <img
                             src={item.image_url}
                             alt={item.title || 'Listing image'}
+                            loading="lazy"
+                            decoding="async"
+                            sizes="160px"
                             className="w-40 h-28 object-cover rounded-lg border border-white/10"
                           />
                         ) : null}
