@@ -182,7 +182,14 @@ export default function SubmitPage() {
   return (
     <main className="min-h-screen px-4 py-10 text-white">
       <div className="mx-auto max-w-xl">
-        <h1 className="mb-6 text-3xl font-bold">Submit a Listing 🇰🇳</h1>
+       <h1 className="mb-2 text-3xl font-bold">Submit a Listing 🇰🇳</h1>
+
+<a
+  href="/"
+  className="inline-block mb-4 text-sm text-amber-300 underline"
+>
+  ← Back to listings
+</a>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
