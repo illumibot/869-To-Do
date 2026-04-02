@@ -167,7 +167,7 @@ export default function AdminPage() {
               return (
                 <div
                   key={item.id}
-                  className="rounded-2xl border border-white/10 bg-white/6 backdrop-blur-sm p-4 md:p-5"
+                 className="rounded-2xl border border-white/10 bg-white/5 p-4 md:p-5"
                 >
                   <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div className="flex-1">
@@ -236,7 +236,7 @@ export default function AdminPage() {
                 return (
                   <div
                     key={item.id}
-                    className="rounded-2xl border border-white/10 bg-white/6 backdrop-blur-sm p-4 md:p-5"
+                    className="rounded-2xl border border-white/10 bg-white/5 p-4 md:p-5"
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                       <div className="flex-1">
