@@ -322,52 +322,45 @@ export default function Page() {
 
   const categories = fixedCategories;
 
-  const filteredListings = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const now = new Date();
+const filteredListings = useMemo(() => {
+  const q = search.trim().toLowerCase();
+  const now = new Date();
 
-    return listings.filter((item) => {
-      const title = getTitle(item).toLowerCase();
-      const description = getDescription(item).toLowerCase();
-      const location = getLocation(item).toLowerCase();
-      const category = getCategory(item);
-      const island = getIsland(item);
+  return listings.filter((item) => {
+    const title = getTitle(item).toLowerCase();
+    const description = getDescription(item).toLowerCase();
+    const location = getLocation(item).toLowerCase();
+    const category = getCategory(item);
+    const island = getIsland(item);
 
-      const rawEnd = item.end_date || '';
-      const rawStart = getDate(item);
+    const rawEnd = item.end_date || '';
+    const endDate = rawEnd ? new Date(rawEnd) : null;
+    const validEnd = endDate && !Number.isNaN(endDate.getTime());
 
-      const endDate = rawEnd ? new Date(rawEnd) : null;
-      const startDate = rawStart ? new Date(rawStart) : null;
+    const isTimeBasedCategory = ['Events', 'Music', 'Nightlife', 'Sports'].includes(category);
 
-      const validEnd = endDate && !Number.isNaN(endDate.getTime());
-      const validStart = startDate && !Number.isNaN(startDate.getTime());
+    const notExpired = !isTimeBasedCategory
+      ? true
+      : validEnd
+        ? endDate >= now
+        : true;
 
-      const isTimeBasedCategory = ['Events', 'Music', 'Nightlife', 'Sports'].includes(category);
+    const matchesSearch =
+      !q ||
+      title.includes(q) ||
+      description.includes(q) ||
+      location.includes(q) ||
+      category.toLowerCase().includes(q);
 
-      const notExpired = !isTimeBasedCategory
-        ? true
-        : validEnd
-          ? endDate >= now
-          : validStart
-            ? startDate >= now
-            : true;
+    const matchesIsland =
+      activeIsland === 'All' || island === activeIsland;
 
-      const matchesSearch =
-        !q ||
-        title.includes(q) ||
-        description.includes(q) ||
-        location.includes(q) ||
-        category.toLowerCase().includes(q);
+    const matchesCategory =
+      activeCategory === 'All' || category === activeCategory;
 
-      const matchesIsland =
-        activeIsland === 'All' || island === activeIsland;
-
-      const matchesCategory =
-        activeCategory === 'All' || category === activeCategory;
-
-      return notExpired && matchesSearch && matchesIsland && matchesCategory;
-    });
-  }, [listings, search, activeIsland, activeCategory]);
+    return notExpired && matchesSearch && matchesIsland && matchesCategory;
+  });
+}, [listings, search, activeIsland, activeCategory]);
 
   const sortedListings = useMemo(() => {
     const now = new Date();
