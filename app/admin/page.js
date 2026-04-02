@@ -40,6 +40,7 @@ export default function AdminPage() {
     const { data, error } = await supabase
       .from('listings')
       .select('*')
+      .order('is_featured', { ascending: false })
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -69,6 +70,7 @@ export default function AdminPage() {
       start_time: item.start_time || item.start_date || null,
       end_time: item.end_time || item.end_date || null,
       phone: item.phone || '',
+      is_featured: false,
       price:
         item.price !== '' && item.price !== null && item.price !== undefined
           ? Number(item.price)
@@ -102,6 +104,47 @@ export default function AdminPage() {
 
     await fetchLiveListings();
     setSubmissions((prev) => prev.filter((submission) => submission.id !== item.id));
+    setProcessingId(null);
+  }
+
+  async function toggleFeatured(item) {
+    if (!item?.id) return;
+
+    setProcessingId(item.id);
+    setError('');
+
+    const nextFeatured = !item.is_featured;
+
+    const { error: updateError } = await supabase
+      .from('listings')
+      .update({ is_featured: nextFeatured })
+      .eq('id', item.id);
+
+    if (updateError) {
+      console.error('Error updating featured status:', updateError);
+      setError(`Could not update featured status: ${updateError.message}`);
+      setProcessingId(null);
+      return;
+    }
+
+    setLiveListings((prev) =>
+      prev
+        .map((listing) =>
+          listing.id === item.id
+            ? { ...listing, is_featured: nextFeatured }
+            : listing
+        )
+        .sort((a, b) => {
+          if (!!a.is_featured !== !!b.is_featured) {
+            return a.is_featured ? -1 : 1;
+          }
+
+          const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return bCreated - aCreated;
+        })
+    );
+
     setProcessingId(null);
   }
 
@@ -239,13 +282,30 @@ export default function AdminPage() {
                 return (
                   <div
                     key={item.id}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-4 md:p-5"
+                    className={[
+                      'rounded-2xl border p-4 md:p-5',
+                      item.is_featured
+                        ? 'border-yellow-400/50 bg-yellow-400/10'
+                        : 'border-white/10 bg-white/5',
+                    ].join(' ')}
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold mb-2">
-                          {item.title || 'Untitled Listing'}
-                        </h3>
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <h3 className="text-lg font-semibold">
+                            {item.title || 'Untitled Listing'}
+                          </h3>
+
+                          {item.is_featured ? (
+                            <span className="rounded-full bg-yellow-400 px-3 py-1 text-xs font-bold text-black">
+                              FEATURED
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/70">
+                              Standard
+                            </span>
+                          )}
+                        </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-white/80 mb-3">
                           <p><span className="text-white font-medium">Category:</span> {item.category || '—'}</p>
@@ -267,6 +327,23 @@ export default function AdminPage() {
                       </div>
 
                       <div className="flex md:flex-col gap-2 md:min-w-[160px]">
+                        <button
+                          onClick={() => toggleFeatured(item)}
+                          disabled={isProcessing}
+                          className={[
+                            'w-full rounded-xl px-4 py-2.5 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed',
+                            item.is_featured
+                              ? 'bg-yellow-500 text-black hover:bg-yellow-400'
+                              : 'bg-blue-600 text-white hover:bg-blue-500',
+                          ].join(' ')}
+                        >
+                          {isProcessing
+                            ? 'Processing...'
+                            : item.is_featured
+                              ? 'Unfeature'
+                              : 'Feature'}
+                        </button>
+
                         <button
                           onClick={() => deleteLiveListing(item.id)}
                           disabled={isProcessing}
