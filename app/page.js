@@ -323,32 +323,11 @@ export default function Page() {
 
   const categories = fixedCategories;
 
-  const filteredListings = useMemo(() => {
-    const q = search.trim().toLowerCase();
-
-    return listings.filter((item) => {
-      const title = getTitle(item).toLowerCase();
-      const description = getDescription(item).toLowerCase();
-      const location = getLocation(item).toLowerCase();
-      const category = getCategory(item);
-      const island = getIsland(item);
-
-      const matchesSearch =
-        !q ||
-        title.includes(q) ||
-        description.includes(q) ||
-        location.includes(q) ||
-        category.toLowerCase().includes(q);
-
-      const matchesIsland =
-        activeIsland === 'All' || island === activeIsland;
-
-      const matchesCategory =
-        activeCategory === 'All' || category === activeCategory;
-
-      return matchesSearch && matchesIsland && matchesCategory;
-    });
-  }, [listings, search, activeIsland, activeCategory]);
+const { data, error } = await supabase
+  .from('listings')
+  .select('*')
+  .order('is_featured', { ascending: false })
+  .order('start_time', { ascending: true });
 
   const sortedListings = useMemo(() => {
     const now = new Date();
