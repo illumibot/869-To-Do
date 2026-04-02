@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
@@ -106,13 +105,6 @@ export default function SubmitPage() {
 
   function updateField(name, value) {
     setForm((prev) => ({ ...prev, [name]: value }));
-  }
-
-  function openPicker(ref) {
-    const input = ref.current;
-    if (!input) return;
-    input.focus();
-    input.showPicker?.();
   }
 
   async function handleImageUpload(e) {
@@ -227,6 +219,7 @@ export default function SubmitPage() {
             className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
           />
 
+          {/* PHONE */}
           <div className="flex gap-2">
             <input
               value={form.area_code}
@@ -234,44 +227,61 @@ export default function SubmitPage() {
               className="w-20 rounded-xl border border-white/30 bg-black/60 px-2 py-3"
             />
             <input
-              placeholder="Phone"
+              placeholder="Phone Number"
               value={form.phone}
               onChange={(e) => updateField('phone', e.target.value)}
               className="flex-1 rounded-xl border border-white/30 bg-black/60 px-4 py-3"
             />
           </div>
 
-          <input type="file" onChange={handleImageUpload} />
+          {/* IMAGE */}
+          <div>
+            <label className="text-sm text-white/80 block mb-1">
+              Upload Image
+            </label>
+            <input type="file" onChange={handleImageUpload} />
+          </div>
 
-        <div className="flex flex-col gap-3">
+          {/* DATES */}
+          <div className="flex flex-col gap-3">
 
-<input
-  ref={startDateRef}
-  type="datetime-local"
-  value={form.start_date}
-  onChange={(e) => updateField('start_date', e.target.value)}
-  onClick={(e) => {
-    if (window.innerWidth > 768) {
-      e.target.showPicker?.();
-    }
-  }}
-  className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
-/>
+            <div>
+              <label className="text-xs text-white/70 block mb-1">
+                Start Date & Time
+              </label>
+              <input
+                ref={startDateRef}
+                type="datetime-local"
+                value={form.start_date}
+                onChange={(e) => updateField('start_date', e.target.value)}
+                onClick={(e) => {
+                  if (window.innerWidth > 768) {
+                    e.target.showPicker?.();
+                  }
+                }}
+                className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
+              />
+            </div>
 
-<input
-  ref={endDateRef}
-  type="datetime-local"
-  value={form.end_date}
-  onChange={(e) => updateField('end_date', e.target.value)}
-  onClick={(e) => {
-    if (window.innerWidth > 768) {
-      e.target.showPicker?.();
-    }
-  }}
-  className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
-/>
+            <div>
+              <label className="text-xs text-white/70 block mb-1">
+                End Date & Time (optional)
+              </label>
+              <input
+                ref={endDateRef}
+                type="datetime-local"
+                value={form.end_date}
+                onChange={(e) => updateField('end_date', e.target.value)}
+                onClick={(e) => {
+                  if (window.innerWidth > 768) {
+                    e.target.showPicker?.();
+                  }
+                }}
+                className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
+              />
+            </div>
 
-</div>
+          </div>
 
           <input
             type="number"
