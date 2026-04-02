@@ -384,8 +384,7 @@ export default function SubmitPage() {
                 onChange={(e) => updateField('start_date', e.target.value)}
                 onFocus={() => openNativePicker(startDateRef)}
                 onClick={() => openNativePicker(startDateRef)}
-                className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none sm:max-w-md"
-              />
+               className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none appearance-none"
             </div>
 
             <div>
@@ -400,8 +399,7 @@ export default function SubmitPage() {
                 onChange={(e) => updateField('end_date', e.target.value)}
                 onFocus={() => openNativePicker(endDateRef)}
                 onClick={() => openNativePicker(endDateRef)}
-                className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white focus:border-cyan-400 focus:outline-none sm:max-w-md"
-              />
+               className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none appearance-none"
             </div>
           </div>
 
