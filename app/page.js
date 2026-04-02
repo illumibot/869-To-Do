@@ -269,13 +269,11 @@ export default function Page() {
 
       const nowIso = new Date().toISOString();
 
-      const { data, error } = await supabase
-        .from('listings')
-        .select('*')
-        .or(`end_date.is.null,end_date.eq.,end_date.gte.${nowIso}`)
-        .order('is_featured', { ascending: false })
-        .order('start_time', { ascending: true });
-
+    const { data, error } = await supabase
+  .from('listings')
+  .select('*')
+  .order('is_featured', { ascending: false })
+  .order('start_time', { ascending: true });
       if (error) {
         console.error('Error loading listings:', error);
         setListings([]);
