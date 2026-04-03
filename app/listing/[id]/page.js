@@ -25,17 +25,44 @@ function normalizeIsland(value) {
   return String(value).trim();
 }
 
+function parseListingDate(value) {
+  if (!value) return null;
+
+  const str = String(value).trim();
+
+  const match = str.match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/
+  );
+
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4] || 0);
+  const minute = Number(match[5] || 0);
+  const second = Number(match[6] || 0);
+
+  const parsed = new Date(year, month - 1, day, hour, minute, second);
+
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  return parsed;
+}
+
 function formatDate(value) {
   if (!value) return 'Date TBA';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return String(value);
 
-  return d.toLocaleString(undefined, {
+  const d = parseListingDate(value);
+  if (!d) return String(value);
+
+  return d.toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+    hour12: true,
   });
 }
 
