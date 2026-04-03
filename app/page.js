@@ -35,6 +35,7 @@ const categoryIcons = {
 
 const INITIAL_VISIBLE_REGULAR = 12;
 const LOAD_MORE_COUNT = 12;
+const ATLANTIC_TIMEZONE = 'America/St_Kitts';
 
 function normalizeIsland(value) {
   return String(value || '')
@@ -112,14 +113,64 @@ function formatPrice(value) {
   return `EC$${n.toFixed(0)}`;
 }
 
+function parseListingDate(value) {
+  if (!value) return null;
+
+  const str = String(value).trim();
+
+  const match = str.match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/
+  );
+
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4] || 0);
+  const minute = Number(match[5] || 0);
+  const second = Number(match[6] || 0);
+
+  const parsed = new Date(year, month - 1, day, hour, minute, second);
+
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  return parsed;
+}
+
+function getAtlanticNow() {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: ATLANTIC_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(new Date());
+  const getPart = (type) => parts.find((p) => p.type === type)?.value || '00';
+
+  return new Date(
+    Number(getPart('year')),
+    Number(getPart('month')) - 1,
+    Number(getPart('day')),
+    Number(getPart('hour')),
+    Number(getPart('minute')),
+    Number(getPart('second'))
+  );
+}
+
 function formatEventDate(value) {
   if (!value) return 'Date TBA';
 
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
+  const d = parseListingDate(value);
+  if (!d) return value;
 
-  const weekday = d.toLocaleDateString(undefined, { weekday: 'short' });
-  const month = d.toLocaleDateString(undefined, { month: 'short' });
+  const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
+  const month = d.toLocaleDateString('en-US', { month: 'short' });
   const day = d.getDate();
 
   let hours = d.getHours();
@@ -263,39 +314,39 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [visibleRegularCount, setVisibleRegularCount] = useState(INITIAL_VISIBLE_REGULAR);
 
- useEffect(() => {
-  async function loadListings() {
-    setLoading(true);
+  useEffect(() => {
+    async function loadListings() {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from('listings')
-      .select('*')
-      .order('is_featured', { ascending: false })
-      .order('start_time', { ascending: true });
+      const { data, error } = await supabase
+        .from('listings')
+        .select('*')
+        .order('is_featured', { ascending: false })
+        .order('start_time', { ascending: true });
 
-    if (error) {
-      console.error('Error loading listings:', error);
-      setListings([]);
+      if (error) {
+        console.error('Error loading listings:', error);
+        setListings([]);
+        setLoading(false);
+        return;
+      }
+
+      setListings(data || []);
       setLoading(false);
-      return;
     }
 
-    setListings(data || []);
-    setLoading(false);
-  }
-
-  loadListings();
-
-  function handleFocus() {
     loadListings();
-  }
 
-  window.addEventListener('focus', handleFocus);
+    function handleFocus() {
+      loadListings();
+    }
 
-  return () => {
-    window.removeEventListener('focus', handleFocus);
-  };
-}, []);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   useEffect(() => {
     const nextSearch = searchParams.get('search') || '';
@@ -332,48 +383,48 @@ export default function Page() {
 
   const categories = fixedCategories;
 
-const filteredListings = useMemo(() => {
-  const q = search.trim().toLowerCase();
-  const now = new Date();
+  const filteredListings = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const now = getAtlanticNow();
 
-  return listings.filter((item) => {
-    const title = getTitle(item).toLowerCase();
-    const description = getDescription(item).toLowerCase();
-    const location = getLocation(item).toLowerCase();
-    const category = getCategory(item);
-    const island = getIsland(item);
+    return listings.filter((item) => {
+      const title = getTitle(item).toLowerCase();
+      const description = getDescription(item).toLowerCase();
+      const location = getLocation(item).toLowerCase();
+      const category = getCategory(item);
+      const island = getIsland(item);
 
-    const rawEnd = item.end_date || '';
-    const endDate = rawEnd ? new Date(rawEnd) : null;
-    const validEnd = endDate && !Number.isNaN(endDate.getTime());
+      const rawEnd = item.end_date || '';
+      const endDate = rawEnd ? parseListingDate(rawEnd) : null;
+      const validEnd = endDate && !Number.isNaN(endDate.getTime());
 
-    const isTimeBasedCategory = ['Events', 'Music', 'Nightlife', 'Sports'].includes(category);
+      const isTimeBasedCategory = ['Events', 'Music', 'Nightlife', 'Sports'].includes(category);
 
-    const notExpired = !isTimeBasedCategory
-      ? true
-      : validEnd
-        ? endDate >= now
-        : true;
+      const notExpired = !isTimeBasedCategory
+        ? true
+        : validEnd
+          ? endDate >= now
+          : true;
 
-    const matchesSearch =
-      !q ||
-      title.includes(q) ||
-      description.includes(q) ||
-      location.includes(q) ||
-      category.toLowerCase().includes(q);
+      const matchesSearch =
+        !q ||
+        title.includes(q) ||
+        description.includes(q) ||
+        location.includes(q) ||
+        category.toLowerCase().includes(q);
 
-    const matchesIsland =
-      activeIsland === 'All' || island === activeIsland;
+      const matchesIsland =
+        activeIsland === 'All' || island === activeIsland;
 
-    const matchesCategory =
-      activeCategory === 'All' || category === activeCategory;
+      const matchesCategory =
+        activeCategory === 'All' || category === activeCategory;
 
-    return notExpired && matchesSearch && matchesIsland && matchesCategory;
-  });
-}, [listings, search, activeIsland, activeCategory]);
+      return notExpired && matchesSearch && matchesIsland && matchesCategory;
+    });
+  }, [listings, search, activeIsland, activeCategory]);
 
   const sortedListings = useMemo(() => {
-    const now = new Date();
+    const now = getAtlanticNow();
 
     return [...filteredListings].sort((a, b) => {
       if (!!a.is_featured !== !!b.is_featured) {
@@ -383,8 +434,8 @@ const filteredListings = useMemo(() => {
       const aDateRaw = getDate(a);
       const bDateRaw = getDate(b);
 
-      const aDate = aDateRaw ? new Date(aDateRaw) : null;
-      const bDate = bDateRaw ? new Date(bDateRaw) : null;
+      const aDate = aDateRaw ? parseListingDate(aDateRaw) : null;
+      const bDate = bDateRaw ? parseListingDate(bDateRaw) : null;
 
       const aValid = aDate && !Number.isNaN(aDate.getTime());
       const bValid = bDate && !Number.isNaN(bDate.getTime());
@@ -403,8 +454,8 @@ const filteredListings = useMemo(() => {
       if (aValid && !bValid) return -1;
       if (!aValid && bValid) return 1;
 
-      const aCreated = a.created_at ? new Date(a.created_at) : null;
-      const bCreated = b.created_at ? new Date(b.created_at) : null;
+      const aCreated = a.created_at ? parseListingDate(a.created_at) : null;
+      const bCreated = b.created_at ? parseListingDate(b.created_at) : null;
 
       const aCreatedValid = aCreated && !Number.isNaN(aCreated.getTime());
       const bCreatedValid = bCreated && !Number.isNaN(bCreated.getTime());
