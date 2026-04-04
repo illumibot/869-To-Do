@@ -187,7 +187,7 @@ export default function SubmitPage() {
 
         <Link
           href="/"
-          className="inline-block mb-4 text-sm text-amber-300 underline"
+          className="mb-4 inline-block text-sm text-amber-300 underline"
         >
           ← Back to listings
         </Link>
@@ -264,9 +264,9 @@ export default function SubmitPage() {
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm text-white/80">
-              Upload Image
+          <div className="rounded-xl border border-white/15 bg-black/30 px-4 py-3">
+            <label className="mb-2 block text-sm font-medium text-white/90">
+              Upload an image for your listing
             </label>
             <input
               type="file"
@@ -274,6 +274,9 @@ export default function SubmitPage() {
               onChange={handleImageUpload}
               className="block w-full text-sm text-white"
             />
+            <p className="mt-2 text-xs text-white/65">
+              Images are automatically compressed for faster loading.
+            </p>
             {uploadingImage && (
               <p className="mt-2 text-sm text-white/70">Uploading image...</p>
             )}
@@ -312,6 +315,10 @@ export default function SubmitPage() {
                 }}
                 className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
               />
+              <p className="mt-2 text-xs text-white/65">
+                Leave blank if there is no end date. Listings ending soonest may
+                appear higher in the listings.
+              </p>
             </div>
           </div>
 
@@ -324,14 +331,14 @@ export default function SubmitPage() {
           />
 
           <p className="rounded-xl border border-white/15 bg-black/35 px-4 py-3 text-sm text-white/85">
-            Want your listing featured? Contact{' '}
+            Want more visibility? Submit a standard listing first, then email{' '}
             <a
               href="mailto:info@869todo.com"
               className="font-semibold text-amber-300 underline underline-offset-2"
             >
               info@869todo.com
-            </a>
-            .
+            </a>{' '}
+            with your listing title to request Featured placement.
           </p>
 
           {message && <p className="text-green-400">{message}</p>}
