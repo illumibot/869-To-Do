@@ -26,9 +26,7 @@ const initialForm = {
   description: '',
   image_url: '',
   start_date: '',
-  start_time: '',
   end_date: '',
-  end_time: '',
   phone: '',
   area_code: '869',
   price: '',
@@ -53,12 +51,6 @@ function normalizePhone(areaCode, phone) {
   }
 
   return `+1${cleanAreaCode}${cleanPhone}`;
-}
-
-function buildDateTime(date, time) {
-  if (!date) return null;
-  if (!time) return date;
-  return `${date}T${time}`;
 }
 
 async function compressImage(file) {
@@ -160,6 +152,18 @@ export default function SubmitPage() {
     setError('');
     setMessage('');
 
+    if (!form.category) {
+      setError('Category is required.');
+      setLoading(false);
+      return;
+    }
+
+    if (!form.island) {
+      setError('Island is required.');
+      setLoading(false);
+      return;
+    }
+
     const payload = {
       title: form.title,
       category: form.category,
@@ -167,8 +171,8 @@ export default function SubmitPage() {
       location: form.location,
       description: form.description,
       image_url: form.image_url || null,
-      start_date: buildDateTime(form.start_date, form.start_time),
-      end_date: buildDateTime(form.end_date, form.end_time),
+      start_date: form.start_date || null,
+      end_date: form.end_date || null,
       phone: normalizePhone(form.area_code, form.phone),
       price: form.price ? Number(form.price) : null,
       status: 'pending',
@@ -292,54 +296,50 @@ export default function SubmitPage() {
             )}
           </div>
 
-          <div className="flex flex-col gap-4">
-            <div className="rounded-xl border border-white/15 bg-black/25 p-3">
-              <label className="mb-2 block text-sm font-medium text-white/85">
-                Start Date
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-blue-400/30 bg-blue-950/20 px-4 py-4">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-blue-200">
+                Start
+              </h2>
+              <label className="mb-1 block text-xs text-white/70">
+                Start Date &amp; Time
               </label>
               <input
-                type="date"
+                type="datetime-local"
                 value={form.start_date}
                 onChange={(e) => updateField('start_date', e.target.value)}
-                className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
-                required
-              />
-
-              <label className="mb-2 mt-3 block text-sm font-medium text-white/75">
-                Start Time (optional)
-              </label>
-              <input
-                type="time"
-                value={form.start_time}
-                onChange={(e) => updateField('start_time', e.target.value)}
-                className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
+                onClick={(e) => {
+                  if (window.innerWidth > 768) {
+                    e.target.showPicker?.();
+                  }
+                }}
+                className="w-full rounded-xl border border-blue-300/20 bg-black/50 px-3 py-2 text-sm text-white"
               />
             </div>
 
-            <div className="rounded-xl border border-white/15 bg-black/25 p-3">
-              <label className="mb-2 block text-sm font-medium text-white/85">
-                End Date (optional)
+            <div className="rounded-2xl border border-amber-400/30 bg-amber-950/20 px-4 py-4">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-amber-200">
+                End
+              </h2>
+              <label className="mb-1 block text-xs text-white/70">
+                End Date &amp; Time (optional)
               </label>
               <input
-                type="date"
+                type="datetime-local"
                 value={form.end_date}
                 onChange={(e) => updateField('end_date', e.target.value)}
-                className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
+                onClick={(e) => {
+                  if (window.innerWidth > 768) {
+                    e.target.showPicker?.();
+                  }
+                }}
+                className="w-full rounded-xl border border-amber-300/20 bg-black/50 px-3 py-2 text-sm text-white"
               />
-
-              <label className="mb-2 mt-3 block text-sm font-medium text-white/75">
-                End Time (optional)
-              </label>
-              <input
-                type="time"
-                value={form.end_time}
-                onChange={(e) => updateField('end_time', e.target.value)}
-                className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
-              />
-
-              <p className="mt-3 text-xs text-white/65">
-                Leave blank if there is no end date. Listings ending soonest may
-                appear higher in the listings.
+              <p className="mt-2 text-xs text-white/70">
+                Leave blank if there is no end date.{' '}
+                <span className="font-bold text-white">
+                  Listings ending soonest may appear higher in the listings.
+                </span>
               </p>
             </div>
           </div>
