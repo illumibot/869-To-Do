@@ -263,9 +263,7 @@ function WeatherPill({ weather }) {
     <div className="shrink-0 rounded-full border border-white/20 bg-[rgba(8,18,42,0.84)] px-4 py-2.5 text-sm font-medium text-white/92">
       <span className="flex items-center gap-2 whitespace-nowrap">
         <span className="text-[0.95rem] leading-none">{weather.emoji}</span>
-        <span>
-          {weather.c}°C / {weather.f}°F
-        </span>
+        <span>{weather.f}°F</span>
       </span>
     </div>
   );
@@ -429,7 +427,6 @@ export default function Page() {
 
         if (!cancelled && current?.temperature_2m !== undefined) {
           setWeather({
-            c: Math.round(current.temperature_2m),
             f: cToF(current.temperature_2m),
             wind: current.wind_speed_10m ?? 0,
             emoji: getWeatherEmoji({
@@ -645,7 +642,7 @@ export default function Page() {
             className="mb-4 w-full rounded-2xl border border-white/15 bg-[#08142b] px-5 py-3 text-white outline-none placeholder:text-white/40"
           />
 
-         className="mb-3 flex flex-wrap items-center gap-2"
+          <div className="mb-3 flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
             {islands.map((island) => (
               <FilterPill
                 key={island}
