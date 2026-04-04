@@ -129,15 +129,18 @@ export default function AdminPage() {
       return;
     }
 
-    const { error: updateError } = await supabase
+    const { error: deleteSubmissionError } = await supabase
       .from('listing_submissions')
-      .update({ approved: true })
+      .delete()
       .eq('id', item.id);
 
-    if (updateError) {
-      console.error('Approved, but could not mark submission approved:', updateError);
+    if (deleteSubmissionError) {
+      console.error(
+        'Listing approved, but could not delete submission:',
+        deleteSubmissionError
+      );
       setError(
-        `Listing approved, but could not update submission status: ${updateError.message}`
+        `Listing approved, but could not remove submission: ${deleteSubmissionError.message}`
       );
       setProcessingId(null);
       return;
