@@ -33,6 +33,7 @@ const initialForm = {
   phone: '',
   area_code: '869',
   price: '',
+  currency: 'EC',
 };
 
 function normalizePhone(areaCode, phone) {
@@ -70,6 +71,18 @@ function showDesktopPicker(e) {
   if (typeof window !== 'undefined' && window.innerWidth > 768) {
     e.currentTarget.showPicker?.();
   }
+}
+
+function normalizePriceInput(value) {
+  const str = String(value || '').trim();
+
+  if (!str) return null;
+  if (str.toLowerCase() === 'free') return 0;
+
+  const num = Number(str);
+  if (Number.isNaN(num)) return NaN;
+
+  return num;
 }
 
 async function compressImage(file) {
@@ -209,6 +222,14 @@ export default function SubmitPage() {
       return;
     }
 
+    const normalizedPrice = normalizePriceInput(form.price);
+
+    if (Number.isNaN(normalizedPrice)) {
+      setError('Price must be a number, 0, or free.');
+      setLoading(false);
+      return;
+    }
+
     const payload = {
       title: form.title.trim(),
       category: form.category,
@@ -219,7 +240,8 @@ export default function SubmitPage() {
       start_date: buildStartDateTime(form.start_date, form.start_time),
       end_date: buildEndDateTime(form.end_date, form.end_time),
       phone: normalizePhone(form.area_code, form.phone),
-      price: form.price ? Number(form.price) : null,
+      price: normalizedPrice,
+      currency: form.currency || 'EC',
       status: 'pending',
     };
 
@@ -272,9 +294,7 @@ export default function SubmitPage() {
             onChange={(e) => updateField('category', e.target.value)}
             className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white"
           >
-            <option value="">
-              Select Category
-            </option>
+            <option value="">Select Category</option>
             {categoryOptions.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -287,9 +307,7 @@ export default function SubmitPage() {
             onChange={(e) => updateField('island', e.target.value)}
             className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white"
           >
-            <option value="">
-              Select Island
-            </option>
+            <option value="">Select Island</option>
             {islandOptions.map((i) => (
               <option key={i} value={i}>
                 {i}
@@ -423,24 +441,55 @@ export default function SubmitPage() {
             </div>
           </div>
 
-          <input
-            type="number"
-            placeholder="Price (EC)"
-            value={form.price}
-            onChange={(e) => updateField('price', e.target.value)}
-            className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
-          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Price"
+              value={form.price}
+              onChange={(e) => updateField('price', e.target.value)}
+              className="flex-1 rounded-xl border border-white/30 bg-black/60 px-4 py-3"
+            />
 
-         <p className="rounded-xl border border-white/15 bg-black/35 px-4 py-3 text-sm text-white/85">
-  Want more visibility? Submit a standard listing first, then email{' '}
-  <a
-    href="mailto:info@869todo.com"
-    className="font-semibold text-amber-300 underline underline-offset-2"
-  >
-    info@869todo.com
-  </a>{' '}
-  with your listing title to request <span className="text-[#f0b13c] font-semibold">Featured</span> placement.
-</p>
+            <div className="flex rounded-xl border border-white/30 bg-black/60 p-1">
+              <button
+                type="button"
+                onClick={() => updateField('currency', 'EC')}
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                  form.currency === 'EC'
+                    ? 'bg-[#f0b13c] text-black'
+                    : 'text-white/80'
+                }`}
+              >
+                EC
+              </button>
+              <button
+                type="button"
+                onClick={() => updateField('currency', 'US')}
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                  form.currency === 'US'
+                    ? 'bg-[#f0b13c] text-black'
+                    : 'text-white/80'
+                }`}
+              >
+                US
+              </button>
+            </div>
+          </div>
+
+          <p className="text-xs text-white/70">
+            Leave price blank for no price. Enter 0 or free for Free.
+          </p>
+
+          <p className="rounded-xl border border-white/15 bg-black/35 px-4 py-3 text-sm text-white/85">
+            Want more visibility? Submit a standard listing first, then email{' '}
+            <a
+              href="mailto:info@869todo.com"
+              className="font-semibold text-amber-300 underline underline-offset-2"
+            >
+              info@869todo.com
+            </a>{' '}
+            with your listing title to request <span className="text-[#f0b13c] font-semibold">Featured</span> placement.
+          </p>
 
           {message && <p className="text-green-400">{message}</p>}
           {error && <p className="text-red-400">{error}</p>}
