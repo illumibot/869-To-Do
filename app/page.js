@@ -645,7 +645,7 @@ export default function Page() {
             className="mb-4 w-full rounded-2xl border border-white/15 bg-[#08142b] px-5 py-3 text-white outline-none placeholder:text-white/40"
           />
 
-          <div className="mb-3 flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+         className="mb-3 flex flex-wrap items-center gap-2"
             {islands.map((island) => (
               <FilterPill
                 key={island}
