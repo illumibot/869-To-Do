@@ -39,6 +39,9 @@ const INITIAL_VISIBLE_REGULAR = 12;
 const LOAD_MORE_COUNT = 12;
 const ATLANTIC_TIMEZONE = 'America/St_Kitts';
 
+const SKN_WEATHER_URL =
+  'https://api.open-meteo.com/v1/forecast?latitude=17.3026&longitude=-62.7177&current=temperature_2m,wind_speed_10m,weather_code,is_day&temperature_unit=celsius&wind_speed_unit=kmh&timezone=auto';
+
 function normalizeIsland(value) {
   return String(value || '')
     .toLowerCase()
@@ -208,6 +211,32 @@ function formatEventDate(value) {
   return `${weekday} ${month} ${day} · ${hours}${minuteText}${ampm}`;
 }
 
+function cToF(c) {
+  return Math.round((c * 9) / 5 + 32);
+}
+
+function getWeatherEmoji({ isDay, weatherCode, windSpeed }) {
+  if (Number(windSpeed) >= 28) return '🌬';
+
+  const code = Number(weatherCode);
+
+  if (!Number(isDay)) {
+    if ([0, 1].includes(code)) return '🌙';
+    if ([2, 3, 45, 48].includes(code)) return '☁️';
+    if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return '🌧';
+    if ([95, 96, 99].includes(code)) return '⛈';
+    return '🌙';
+  }
+
+  if (code === 0) return '☀️';
+  if ([1, 2].includes(code)) return '🌤';
+  if ([3, 45, 48].includes(code)) return '☁️';
+  if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return '🌧';
+  if ([95, 96, 99].includes(code)) return '⛈';
+
+  return '☀️';
+}
+
 function FilterPill({ active, children, onClick, icon = null }) {
   return (
     <button
@@ -224,6 +253,21 @@ function FilterPill({ active, children, onClick, icon = null }) {
         <span>{children}</span>
       </span>
     </button>
+  );
+}
+
+function WeatherPill({ weather }) {
+  if (!weather) return null;
+
+  return (
+    <div className="shrink-0 rounded-full border border-white/20 bg-[rgba(8,18,42,0.84)] px-4 py-2.5 text-sm font-medium text-white/92">
+      <span className="flex items-center gap-2 whitespace-nowrap">
+        <span className="text-[0.95rem] leading-none">{weather.emoji}</span>
+        <span>
+          {weather.c}°C / {weather.f}°F
+        </span>
+      </span>
+    </div>
   );
 }
 
@@ -338,6 +382,7 @@ export default function Page() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [loading, setLoading] = useState(true);
   const [visibleRegularCount, setVisibleRegularCount] = useState(INITIAL_VISIBLE_REGULAR);
+  const [weather, setWeather] = useState(null);
 
   useEffect(() => {
     async function loadListings() {
@@ -370,6 +415,39 @@ export default function Page() {
 
     return () => {
       window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadWeather() {
+      try {
+        const res = await fetch(SKN_WEATHER_URL);
+        const data = await res.json();
+        const current = data?.current;
+
+        if (!cancelled && current?.temperature_2m !== undefined) {
+          setWeather({
+            c: Math.round(current.temperature_2m),
+            f: cToF(current.temperature_2m),
+            wind: current.wind_speed_10m ?? 0,
+            emoji: getWeatherEmoji({
+              isDay: current.is_day,
+              weatherCode: current.weather_code,
+              windSpeed: current.wind_speed_10m,
+            }),
+          });
+        }
+      } catch (err) {
+        console.error('Error loading weather:', err);
+      }
+    }
+
+    loadWeather();
+
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -567,7 +645,7 @@ export default function Page() {
             className="mb-4 w-full rounded-2xl border border-white/15 bg-[#08142b] px-5 py-3 text-white outline-none placeholder:text-white/40"
           />
 
-          <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
+          <div className="mb-3 flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
             {islands.map((island) => (
               <FilterPill
                 key={island}
@@ -580,6 +658,8 @@ export default function Page() {
                 {island}
               </FilterPill>
             ))}
+
+            <WeatherPill weather={weather} />
           </div>
 
           <div className="flex items-center gap-2">
