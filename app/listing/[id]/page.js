@@ -121,14 +121,15 @@ function formatDate(value, options = {}) {
   });
 }
 
-function formatPrice(value) {
-  if (value === null || value === undefined || value === '') return 'Free';
+function formatPrice(value, currency = 'EC') {
+  if (value === null || value === undefined || value === '') return '';
 
   const num = Number(value);
   if (Number.isNaN(num)) return String(value);
   if (num === 0) return 'Free';
 
-  return `EC$${num.toLocaleString()}`;
+  const prefix = currency === 'US' ? 'US$' : 'EC$';
+  return `${prefix}${num.toLocaleString()}`;
 }
 
 function getTitle(item) {
@@ -156,7 +157,11 @@ function getEndDate(item) {
 }
 
 function getPrice(item) {
-  return item.price ?? item.cost ?? item.ticket_price ?? 0;
+  return item.price ?? item.cost ?? item.ticket_price ?? null;
+}
+
+function getCurrency(item) {
+  return item.currency || 'EC';
 }
 
 function getDescription(item) {
@@ -284,7 +289,7 @@ export default function ListingDetailPage() {
   const location = getLocation(listing);
   const date = getDate(listing);
   const endDate = getEndDate(listing);
-  const price = getPrice(listing);
+  const priceText = formatPrice(getPrice(listing), getCurrency(listing));
   const description = getDescription(listing);
   const image = getImage(listing);
   const phone = getPhone(listing);
@@ -361,7 +366,7 @@ export default function ListingDetailPage() {
               <p className="mt-2 text-white/70">{location}</p>
             </div>
 
-            <div className={`grid gap-4 ${date ? 'sm:grid-cols-2' : 'sm:grid-cols-1'}`}>
+            <div className={`grid gap-4 ${date || priceText ? 'sm:grid-cols-2' : 'sm:grid-cols-1'}`}>
               {date && (
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-sm text-white/50">Start</p>
@@ -369,10 +374,12 @@ export default function ListingDetailPage() {
                 </div>
               )}
 
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-sm text-white/50">Price</p>
-                <p className="mt-1 text-lg font-medium">{formatPrice(price)}</p>
-              </div>
+              {priceText ? (
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <p className="text-sm text-white/50">Price</p>
+                  <p className="mt-1 text-lg font-medium">{priceText}</p>
+                </div>
+              ) : null}
             </div>
 
             {endDate && (
