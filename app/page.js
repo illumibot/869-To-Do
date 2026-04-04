@@ -163,6 +163,24 @@ function getAtlanticNow() {
   );
 }
 
+function hasExplicitTime(value) {
+  if (!value) return false;
+
+  const str = String(value).trim();
+  const match = str.match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/
+  );
+
+  if (!match || match[4] === undefined || match[5] === undefined) {
+    return false;
+  }
+
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+
+  return !(hour === 0 && minute === 0);
+}
+
 function formatEventDate(value) {
   if (!value) return 'Date TBA';
 
@@ -172,6 +190,10 @@ function formatEventDate(value) {
   const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
   const month = d.toLocaleDateString('en-US', { month: 'short' });
   const day = d.getDate();
+
+  if (!hasExplicitTime(value)) {
+    return `${weekday} ${month} ${day}`;
+  }
 
   let hours = d.getHours();
   const minutes = d.getMinutes();
