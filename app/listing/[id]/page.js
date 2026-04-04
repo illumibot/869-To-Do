@@ -148,7 +148,7 @@ function getLocation(item) {
 }
 
 function getDate(item) {
-  return item.start_time || item.date || item.event_date || item.starts_at || item.start_date || item.created_at;
+  return item.start_time || item.date || item.event_date || item.starts_at || item.start_date || '';
 }
 
 function getEndDate(item) {
@@ -361,11 +361,13 @@ export default function ListingDetailPage() {
               <p className="mt-2 text-white/70">{location}</p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-sm text-white/50">Start</p>
-                <p className="mt-1 text-lg font-medium">{formatDate(date)}</p>
-              </div>
+            <div className={`grid gap-4 ${date ? 'sm:grid-cols-2' : 'sm:grid-cols-1'}`}>
+              {date && (
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <p className="text-sm text-white/50">Start</p>
+                  <p className="mt-1 text-lg font-medium">{formatDate(date)}</p>
+                </div>
+              )}
 
               <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <p className="text-sm text-white/50">Price</p>
