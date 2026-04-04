@@ -50,16 +50,71 @@ function parseListingDate(value) {
   return parsed;
 }
 
-function formatDate(value) {
+function hasExplicitStartTime(value) {
+  if (!value) return false;
+
+  const str = String(value).trim();
+  const match = str.match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/
+  );
+
+  if (!match || match[4] === undefined || match[5] === undefined) {
+    return false;
+  }
+
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+
+  return !(hour === 0 && minute === 0);
+}
+
+function hasExplicitEndTime(value) {
+  if (!value) return false;
+
+  const str = String(value).trim();
+  const match = str.match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/
+  );
+
+  if (!match || match[4] === undefined || match[5] === undefined) {
+    return false;
+  }
+
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+
+  return !(hour === 23 && minute === 59) && !(hour === 0 && minute === 0);
+}
+
+function formatDate(value, options = {}) {
   if (!value) return 'Date TBA';
 
   const d = parseListingDate(value);
   if (!d) return String(value);
 
+  const showTime =
+    options.forceTime === true
+      ? true
+      : options.forceTime === false
+        ? false
+        : options.isEnd
+          ? hasExplicitEndTime(value)
+          : hasExplicitStartTime(value);
+
+  if (!showTime) {
+    return d.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  }
+
   return d.toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
+    year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
@@ -321,7 +376,7 @@ export default function ListingDetailPage() {
             {endDate && (
               <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <p className="text-sm text-white/50">End</p>
-                <p className="mt-1 text-lg font-medium">{formatDate(endDate)}</p>
+                <p className="mt-1 text-lg font-medium">{formatDate(endDate, { isEnd: true })}</p>
               </div>
             )}
 
