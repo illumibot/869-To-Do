@@ -260,10 +260,10 @@ function WeatherPill({ weather }) {
   if (!weather) return null;
 
   return (
-    <div className="shrink-0 rounded-full border border-white/20 bg-[rgba(8,18,42,0.84)] px-4 py-2.5 text-sm font-medium text-white/92">
-      <span className="flex items-center gap-2 whitespace-nowrap">
+    <div className="shrink-0 rounded-full border border-white/20 bg-[rgba(8,18,42,0.84)] px-3 py-2.5 text-sm font-medium text-white/92">
+      <span className="flex items-center gap-1.5 whitespace-nowrap">
         <span className="text-[0.95rem] leading-none">{weather.emoji}</span>
-        <span>{weather.f}°F</span>
+        <span>{weather.f}°</span>
       </span>
     </div>
   );
