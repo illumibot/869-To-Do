@@ -11,6 +11,7 @@ const fixedCategories = [
   'All',
   'Events',
   'Food',
+  'Bars',
   'Music',
   'Nightlife',
   'Family',
@@ -25,6 +26,7 @@ const categoryIcons = {
   Nightlife: '♥',
   Family: '◔',
   Food: '☕',
+  Bars: '🍹',
   Tours: '✦',
   Wellness: '☼',
   Sports: '◆',
@@ -182,7 +184,7 @@ function hasExplicitTime(value) {
 }
 
 function formatEventDate(value) {
-  if (!value) return 'Date TBA';
+  if (!value) return '';
 
   const d = parseListingDate(value);
   if (!d) return value;
@@ -246,6 +248,7 @@ function ListingCard({ item, compact = false, queryString = '' }) {
   const featured = !!item.is_featured;
   const image = getImage(item);
   const category = getCategory(item);
+  const dateText = formatEventDate(getDate(item));
   const href = queryString
     ? `/listing/${item.id}?${queryString}`
     : `/listing/${item.id}`;
@@ -300,7 +303,7 @@ function ListingCard({ item, compact = false, queryString = '' }) {
         </h3>
 
         <div className="space-y-1 text-sm text-white/75">
-          <p>{formatEventDate(getDate(item))}</p>
+          {dateText ? <p>{dateText}</p> : null}
           <p>{getLocation(item)}</p>
         </div>
 
