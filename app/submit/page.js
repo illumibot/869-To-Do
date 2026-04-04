@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 const categoryOptions = [
   'Events',
   'Food',
+  'Bars',
   'Music',
   'Tours',
   'Nightlife',
@@ -196,8 +197,14 @@ export default function SubmitPage() {
       return;
     }
 
-    if (!form.start_date) {
-      setError('Start date is required.');
+    if (form.start_time && !form.start_date) {
+      setError('Start date is required if you enter a start time.');
+      setLoading(false);
+      return;
+    }
+
+    if (form.end_time && !form.end_date) {
+      setError('End date is required if you enter an end time.');
       setLoading(false);
       return;
     }
@@ -338,7 +345,7 @@ export default function SubmitPage() {
               </h2>
 
               <label className="mb-1 block text-xs text-white/75">
-                Start Date
+                Start Date (optional)
               </label>
               <input
                 type="date"
@@ -360,6 +367,10 @@ export default function SubmitPage() {
                 onClick={showDesktopPicker}
                 className="w-full rounded-xl border border-emerald-300/20 bg-black/50 px-3 py-2 text-sm text-white"
               />
+
+              <p className="mt-3 text-xs text-white/70">
+                Leave blank for general listings. If you enter a start time, you must also choose a start date.
+              </p>
             </div>
 
             <div className="rounded-2xl border border-red-400/35 bg-red-950/20 px-4 py-4">
@@ -404,8 +415,7 @@ export default function SubmitPage() {
               />
 
               <p className="mt-3 text-xs text-white/70">
-                Leave the end fields blank if there is no end date or no end
-                time.
+                Leave the end fields blank if there is no end date or no end time.
               </p>
               <p className="mt-2 text-xs font-bold text-white">
                 Listings ending soonest may appear higher in the listings.
