@@ -431,16 +431,16 @@ export default function SubmitPage() {
             className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
           />
 
-          <p className="rounded-xl border border-white/15 bg-black/35 px-4 py-3 text-sm text-white/85">
-            Want more visibility? Submit a standard listing first, then email{' '}
-            <a
-              href="mailto:info@869todo.com"
-              className="font-semibold text-amber-300 underline underline-offset-2"
-            >
-              info@869todo.com
-            </a>{' '}
-            with your listing title to request Featured placement.
-          </p>
+         <p className="rounded-xl border border-white/15 bg-black/35 px-4 py-3 text-sm text-white/85">
+  Want more visibility? Submit a standard listing first, then email{' '}
+  <a
+    href="mailto:info@869todo.com"
+    className="font-semibold text-amber-300 underline underline-offset-2"
+  >
+    info@869todo.com
+  </a>{' '}
+  with your listing title to request <span className="text-[#f0b13c] font-semibold">Featured</span> placement.
+</p>
 
           {message && <p className="text-green-400">{message}</p>}
           {error && <p className="text-red-400">{error}</p>}
