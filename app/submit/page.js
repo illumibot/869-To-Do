@@ -65,6 +65,12 @@ function buildEndDateTime(date, time) {
   return `${date}T${time || '23:59'}`;
 }
 
+function showDesktopPicker(e) {
+  if (typeof window !== 'undefined' && window.innerWidth > 768) {
+    e.currentTarget.showPicker?.();
+  }
+}
+
 async function compressImage(file) {
   const img = await new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
@@ -172,6 +178,12 @@ export default function SubmitPage() {
     setError('');
     setMessage('');
 
+    if (!form.title.trim()) {
+      setError('Title is required.');
+      setLoading(false);
+      return;
+    }
+
     if (!form.category) {
       setError('Category is required.');
       setLoading(false);
@@ -191,7 +203,7 @@ export default function SubmitPage() {
     }
 
     const payload = {
-      title: form.title,
+      title: form.title.trim(),
       category: form.category,
       island: form.island,
       location: form.location,
@@ -232,13 +244,12 @@ export default function SubmitPage() {
           ← Back to listings
         </Link>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <input
             placeholder="Title"
             value={form.title}
             onChange={(e) => updateField('title', e.target.value)}
             className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3"
-            required
           />
 
           <textarea
@@ -253,9 +264,8 @@ export default function SubmitPage() {
             value={form.category}
             onChange={(e) => updateField('category', e.target.value)}
             className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white"
-            required
           >
-            <option value="" disabled>
+            <option value="">
               Select Category
             </option>
             {categoryOptions.map((c) => (
@@ -269,9 +279,8 @@ export default function SubmitPage() {
             value={form.island}
             onChange={(e) => updateField('island', e.target.value)}
             className="w-full rounded-xl border border-white/30 bg-black/60 px-4 py-3 text-white"
-            required
           >
-            <option value="" disabled>
+            <option value="">
               Select Island
             </option>
             {islandOptions.map((i) => (
@@ -335,8 +344,9 @@ export default function SubmitPage() {
                 type="date"
                 value={form.start_date}
                 onChange={(e) => updateField('start_date', e.target.value)}
+                onFocus={showDesktopPicker}
+                onClick={showDesktopPicker}
                 className="w-full rounded-xl border border-emerald-300/20 bg-black/50 px-3 py-2 text-sm text-white"
-                required
               />
 
               <label className="mb-1 mt-3 block text-xs text-white/75">
@@ -346,6 +356,8 @@ export default function SubmitPage() {
                 type="time"
                 value={form.start_time}
                 onChange={(e) => updateField('start_time', e.target.value)}
+                onFocus={showDesktopPicker}
+                onClick={showDesktopPicker}
                 className="w-full rounded-xl border border-emerald-300/20 bg-black/50 px-3 py-2 text-sm text-white"
               />
             </div>
@@ -374,6 +386,8 @@ export default function SubmitPage() {
                 type="date"
                 value={form.end_date}
                 onChange={(e) => updateField('end_date', e.target.value)}
+                onFocus={showDesktopPicker}
+                onClick={showDesktopPicker}
                 className="w-full rounded-xl border border-red-300/20 bg-black/50 px-3 py-2 text-sm text-white"
               />
 
@@ -384,6 +398,8 @@ export default function SubmitPage() {
                 type="time"
                 value={form.end_time}
                 onChange={(e) => updateField('end_time', e.target.value)}
+                onFocus={showDesktopPicker}
+                onClick={showDesktopPicker}
                 className="w-full rounded-xl border border-red-300/20 bg-black/50 px-3 py-2 text-sm text-white"
               />
 
