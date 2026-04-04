@@ -109,6 +109,13 @@ export default function SubmitPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
+  function clearEndDate() {
+    setForm((prev) => ({
+      ...prev,
+      end_date: '',
+    }));
+  }
+
   async function handleImageUpload(e) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -318,9 +325,21 @@ export default function SubmitPage() {
             </div>
 
             <div className="rounded-2xl border border-amber-400/30 bg-amber-950/20 px-4 py-4">
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-amber-200">
-                End
-              </h2>
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-amber-200">
+                  End
+                </h2>
+                {form.end_date && (
+                  <button
+                    type="button"
+                    onClick={clearEndDate}
+                    className="rounded-lg border border-amber-300/30 bg-black/30 px-3 py-1 text-xs font-medium text-amber-200 hover:bg-black/50"
+                  >
+                    Clear End Date / Time
+                  </button>
+                )}
+              </div>
+
               <label className="mb-1 block text-xs text-white/70">
                 End Date &amp; Time (optional)
               </label>
@@ -336,7 +355,14 @@ export default function SubmitPage() {
                 className="w-full rounded-xl border border-amber-300/20 bg-black/50 px-3 py-2 text-sm text-white"
               />
               <p className="mt-2 text-xs text-white/70">
-                Leave blank if there is no end date.{' '}
+                This field is optional. If you do not want an end date or time,
+                leave it blank or tap{' '}
+                <span className="font-semibold text-amber-200">
+                  Clear End Date / Time
+                </span>
+                .
+              </p>
+              <p className="mt-2 text-xs text-white/70">
                 <span className="font-bold text-white">
                   Listings ending soonest may appear higher in the listings.
                 </span>
