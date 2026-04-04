@@ -98,7 +98,11 @@ function getImage(item) {
 }
 
 function getPrice(item) {
-  return item.price ?? item.cost ?? item.ticket_price ?? 0;
+  return item.price ?? item.cost ?? item.ticket_price ?? null;
+}
+
+function getCurrency(item) {
+  return item.currency || 'EC';
 }
 
 function getDate(item) {
@@ -112,10 +116,15 @@ function getDate(item) {
   );
 }
 
-function formatPrice(value) {
+function formatPrice(value, currency = 'EC') {
+  if (value === null || value === undefined || value === '') return '';
+
   const n = Number(value);
-  if (!n) return 'Free';
-  return `EC$${n.toFixed(0)}`;
+  if (Number.isNaN(n)) return String(value);
+  if (n === 0) return 'Free';
+
+  const prefix = currency === 'US' ? 'US$' : 'EC$';
+  return `${prefix}${n.toFixed(0)}`;
 }
 
 function parseListingDate(value) {
@@ -291,6 +300,7 @@ function ListingCard({ item, compact = false, queryString = '' }) {
   const image = getImage(item);
   const category = getCategory(item);
   const dateText = formatEventDate(getDate(item));
+  const priceText = formatPrice(getPrice(item), getCurrency(item));
   const href = queryString
     ? `/listing/${item.id}?${queryString}`
     : `/listing/${item.id}`;
@@ -335,9 +345,11 @@ function ListingCard({ item, compact = false, queryString = '' }) {
           <span className="rounded-full bg-white/10 px-3 py-1">
             {getIsland(item)}
           </span>
-          <span className="rounded-full bg-white/10 px-3 py-1">
-            {formatPrice(getPrice(item))}
-          </span>
+          {priceText ? (
+            <span className="rounded-full bg-white/10 px-3 py-1">
+              {priceText}
+            </span>
+          ) : null}
         </div>
 
         <h3 className={`${compact ? 'text-xl' : 'text-2xl'} font-semibold text-white`}>
