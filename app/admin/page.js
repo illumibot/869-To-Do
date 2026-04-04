@@ -44,6 +44,17 @@ function formatDate(value) {
   });
 }
 
+function formatPrice(value, currency = 'EC') {
+  if (value === null || value === undefined || value === '') return '—';
+
+  const num = Number(value);
+
+  if (Number.isNaN(num)) return String(value);
+  if (num === 0) return 'Free';
+
+  return `${currency === 'US' ? 'US$' : 'EC$'}${num.toFixed(0)}`;
+}
+
 export default function AdminPage() {
   const [submissions, setSubmissions] = useState([]);
   const [liveListings, setLiveListings] = useState([]);
@@ -116,6 +127,7 @@ export default function AdminPage() {
         item.price !== '' && item.price !== null && item.price !== undefined
           ? Number(item.price)
           : null,
+      currency: item.currency || 'EC',
     };
 
     const { error: insertError } = await supabase
@@ -267,7 +279,7 @@ export default function AdminPage() {
                         <p><span className="text-white font-medium">Island:</span> {item.island || '—'}</p>
                         <p><span className="text-white font-medium">Location:</span> {item.location || '—'}</p>
                         <p><span className="text-white font-medium">Phone:</span> {item.phone || '—'}</p>
-                        <p><span className="text-white font-medium">Price:</span> {item.price ?? '—'}</p>
+                        <p><span className="text-white font-medium">Price:</span> {formatPrice(item.price, item.currency || 'EC')}</p>
                         <p><span className="text-white font-medium">Start Date:</span> {formatDate(item.start_date)}</p>
                         <p><span className="text-white font-medium">End Date:</span> {item.end_date ? formatDate(item.end_date) : 'Optional / none'}</p>
                       </div>
@@ -356,6 +368,7 @@ export default function AdminPage() {
                           <p><span className="text-white font-medium">Island:</span> {item.island || '—'}</p>
                           <p><span className="text-white font-medium">Location:</span> {item.location || '—'}</p>
                           <p><span className="text-white font-medium">Phone:</span> {item.phone || '—'}</p>
+                          <p><span className="text-white font-medium">Price:</span> {formatPrice(item.price, item.currency || 'EC')}</p>
                           <p><span className="text-white font-medium">Start Date:</span> {formatDate(item.start_date)}</p>
                           <p><span className="text-white font-medium">End Date:</span> {item.end_date ? formatDate(item.end_date) : '—'}</p>
                         </div>
