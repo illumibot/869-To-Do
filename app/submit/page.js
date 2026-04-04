@@ -26,7 +26,9 @@ const initialForm = {
   description: '',
   image_url: '',
   start_date: '',
+  start_time: '',
   end_date: '',
+  end_time: '',
   phone: '',
   area_code: '869',
   price: '',
@@ -51,6 +53,12 @@ function normalizePhone(areaCode, phone) {
   }
 
   return `+1${cleanAreaCode}${cleanPhone}`;
+}
+
+function buildDateTime(date, time) {
+  if (!date) return null;
+  if (!time) return date;
+  return `${date}T${time}`;
 }
 
 async function compressImage(file) {
@@ -159,8 +167,8 @@ export default function SubmitPage() {
       location: form.location,
       description: form.description,
       image_url: form.image_url || null,
-      start_date: form.start_date || null,
-      end_date: form.end_date || null,
+      start_date: buildDateTime(form.start_date, form.start_time),
+      end_date: buildDateTime(form.end_date, form.end_time),
       phone: normalizePhone(form.area_code, form.phone),
       price: form.price ? Number(form.price) : null,
       status: 'pending',
@@ -173,7 +181,9 @@ export default function SubmitPage() {
     if (insertError) {
       setError(insertError.message);
     } else {
-      setMessage('Submitted! Awaiting approval.');
+      setMessage(
+        'Submitted! Your listing is awaiting approval. Want Featured placement later? After approval, email info@869todo.com with your listing title.'
+      );
       setForm(initialForm);
     }
 
@@ -282,40 +292,52 @@ export default function SubmitPage() {
             )}
           </div>
 
-          <div className="flex flex-col gap-3">
-            <div>
-              <label className="mb-1 block text-xs text-white/70">
-                Start Date &amp; Time
+          <div className="flex flex-col gap-4">
+            <div className="rounded-xl border border-white/15 bg-black/25 p-3">
+              <label className="mb-2 block text-sm font-medium text-white/85">
+                Start Date
               </label>
               <input
-                type="datetime-local"
+                type="date"
                 value={form.start_date}
                 onChange={(e) => updateField('start_date', e.target.value)}
-                onClick={(e) => {
-                  if (window.innerWidth > 768) {
-                    e.target.showPicker?.();
-                  }
-                }}
+                className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
+                required
+              />
+
+              <label className="mb-2 mt-3 block text-sm font-medium text-white/75">
+                Start Time (optional)
+              </label>
+              <input
+                type="time"
+                value={form.start_time}
+                onChange={(e) => updateField('start_time', e.target.value)}
                 className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
               />
             </div>
 
-            <div>
-              <label className="mb-1 block text-xs text-white/70">
-                End Date &amp; Time (optional)
+            <div className="rounded-xl border border-white/15 bg-black/25 p-3">
+              <label className="mb-2 block text-sm font-medium text-white/85">
+                End Date (optional)
               </label>
               <input
-                type="datetime-local"
+                type="date"
                 value={form.end_date}
                 onChange={(e) => updateField('end_date', e.target.value)}
-                onClick={(e) => {
-                  if (window.innerWidth > 768) {
-                    e.target.showPicker?.();
-                  }
-                }}
                 className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
               />
-              <p className="mt-2 text-xs text-white/65">
+
+              <label className="mb-2 mt-3 block text-sm font-medium text-white/75">
+                End Time (optional)
+              </label>
+              <input
+                type="time"
+                value={form.end_time}
+                onChange={(e) => updateField('end_time', e.target.value)}
+                className="w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white"
+              />
+
+              <p className="mt-3 text-xs text-white/65">
                 Leave blank if there is no end date. Listings ending soonest may
                 appear higher in the listings.
               </p>
