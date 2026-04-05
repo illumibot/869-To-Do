@@ -141,6 +141,14 @@ export default function SubmitPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
+  function clearStartFields() {
+    setForm((prev) => ({
+      ...prev,
+      start_date: '',
+      start_time: '',
+    }));
+  }
+
   function clearEndFields() {
     setForm((prev) => ({
       ...prev,
@@ -358,9 +366,21 @@ export default function SubmitPage() {
 
           <div className="space-y-4">
             <div className="rounded-2xl border border-emerald-400/35 bg-emerald-950/20 px-4 py-4">
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-emerald-300">
-                Start
-              </h2>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-emerald-300">
+                  Start
+                </h2>
+
+                {(form.start_date || form.start_time) && (
+                  <button
+                    type="button"
+                    onClick={clearStartFields}
+                    className="rounded-lg border border-emerald-300/30 bg-black/30 px-3 py-1 text-xs font-medium text-emerald-200 hover:bg-black/50"
+                  >
+                    Clear Start
+                  </button>
+                )}
+              </div>
 
               <label className="mb-1 block text-xs text-white/75">
                 Start Date (optional)
@@ -387,7 +407,8 @@ export default function SubmitPage() {
               />
 
               <p className="mt-3 text-xs text-white/70">
-                Leave blank for general listings. If you enter a start time, you must also choose a start date.
+                Leave blank for general listings. If you enter a start time, you
+                must also choose a start date.
               </p>
             </div>
 
@@ -433,7 +454,8 @@ export default function SubmitPage() {
               />
 
               <p className="mt-3 text-xs text-white/70">
-                Leave the end fields blank if there is no end date or no end time.
+                Leave the end fields blank if there is no end date or no end
+                time.
               </p>
               <p className="mt-2 text-xs font-bold text-white">
                 Listings ending soonest may appear higher in the listings.
@@ -488,7 +510,9 @@ export default function SubmitPage() {
             >
               info@869todo.com
             </a>{' '}
-            with your listing title to request <span className="text-[#f0b13c] font-semibold">Featured</span> placement.
+            with your listing title to request{' '}
+            <span className="font-semibold text-[#f0b13c]">Featured</span>{' '}
+            placement.
           </p>
 
           {message && <p className="text-green-400">{message}</p>}
